@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Xcode (xcshareddata is NOT ignored: it holds Package.resolved)
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/
+*.xcarchive
+*.dSYM
+*.dSYM.zip
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Local, per-developer settings (see Local.xcconfig.example)
+Local.xcconfig
+
+# Release output
+dist/

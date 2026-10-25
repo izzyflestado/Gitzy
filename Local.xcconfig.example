@@ -1,0 +1,11 @@
+// OPTIONAL. Only needed if you sign Gitzy with your own Apple Developer account.
+// The project builds fine without this file (it uses ad-hoc "Sign to Run Locally" signing).
+//
+// To use it:
+//   1. Copy this file to Local.xcconfig (that name is git-ignored, so your Team ID stays private).
+//   2. Fill in the values below.
+//   3. In Xcode: Project > Info > Configurations, set Local.xcconfig as the base for Debug and Release.
+
+// DEVELOPMENT_TEAM = XXXXXXXXXX
+// CODE_SIGN_STYLE = Automatic
+// CODE_SIGN_IDENTITY = Apple Development
