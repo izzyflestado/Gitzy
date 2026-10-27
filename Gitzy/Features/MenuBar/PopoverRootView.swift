@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Milestone 4 placeholder with three test tabs. The real Contributions and Projects tabs, the footer
-/// and the Settings window arrive in Milestone 5. The Widget tab holds a test control removed in Milestone 6.
+/// and the Settings window arrive in Milestone 5. The Widget tab is the temporary home of the widget controls.
 struct PopoverRootView: View {
     let widget: BranchWidgetController
     let projects: ProjectStore
@@ -58,16 +58,38 @@ struct PopoverRootView: View {
 
     private var widgetTab: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Toggle("Show branch widget (test)", isOn: Binding(
+            Toggle("Show branch widget", isOn: Binding(
                 get: { widget.isVisible },
                 set: { widget.setVisible($0) }
             ))
             .toggleStyle(.checkbox)
 
-            Text(widget.elevationSummary)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(2)
+            HStack {
+                Text("Position")
+                Spacer()
+                Picker("Position", selection: Binding(
+                    get: { settings.widgetPosition },
+                    set: { widget.setPosition($0) }
+                )) {
+                    ForEach(WidgetPosition.allCases) { position in
+                        Text(position.label).tag(position)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: 140)
+            }
+
+            // Fixed height, so a longer message never moves anything.
+            VStack(alignment: .leading, spacing: 4) {
+                Text(widget.detectionSummary)
+                    .lineLimit(3)
+                    .truncationMode(.middle)
+                Text(widget.elevationSummary)
+                    .lineLimit(2)
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .frame(height: 64, alignment: .topLeading)
         }
     }
 }

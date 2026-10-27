@@ -13,7 +13,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let settings = AppSettings()
         let projects = ProjectStore(settings: settings)
         let contributions = ContributionStore(settings: settings)
-        let widget = BranchWidgetController()
+        let widget = BranchWidgetController(settings: settings, projects: projects)
         self.settings = settings
         self.projects = projects
         self.contributions = contributions

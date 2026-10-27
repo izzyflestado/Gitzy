@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// The three looks from the spec, in fallback order: glass, then material, then a flat dark fill.
-/// Milestone 2 lets you pick one by hand to see which renders correctly above a fullscreen app.
+/// Glass is the look; the other two are what it falls back to.
 enum WidgetBackdrop: String, CaseIterable, Identifiable {
     case glass, material, flat
 
@@ -49,13 +49,17 @@ struct BranchWidgetView: View {
     }
 
     private var label: some View {
-        Text(branch)
-            .font(.system(size: 11, weight: .medium))
-            .foregroundStyle(Color.primary.opacity(0.85))
-            .lineLimit(1)
-            .truncationMode(.middle)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .frame(maxWidth: 240)
+        HStack(spacing: 5) {
+            Image(systemName: "arrow.triangle.branch")
+                .font(.system(size: 10, weight: .medium))
+            Text(branch)
+                .font(.system(size: 11, weight: .medium))
+                .lineLimit(1)
+                .truncationMode(.middle)
+        }
+        .foregroundStyle(Color.primary.opacity(0.85))
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .frame(maxWidth: 240)
     }
 }

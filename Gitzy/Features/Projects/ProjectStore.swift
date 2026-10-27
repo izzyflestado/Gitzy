@@ -9,6 +9,9 @@ final class ProjectStore {
     private(set) var message = "Add a project or scan a folder."
     private(set) var isScanning = false
 
+    /// Called whenever the list changes, so the branch widget can match what it detected against the new list.
+    @ObservationIgnored var onProjectsChanged: (() -> Void)?
+
     @ObservationIgnored private var projects: [GitProject]
     @ObservationIgnored private var scanTask: Task<[URL], Never>?
     private let settings: AppSettings
@@ -71,6 +74,7 @@ final class ProjectStore {
         rows.removeAll { $0.project == project }
         save()
         message = "Removed \(project.name) from Gitzy. Its files were not touched."
+        onProjectsChanged?()
     }
 
     // MARK: Reading state
@@ -83,6 +87,7 @@ final class ProjectStore {
             paths.map { GitRepositoryService.status(ofProjectAt: $0) }
         }.value
         rows = zip(snapshot, statuses).map { ProjectRow(project: $0, status: $1) }
+        onProjectsChanged?()
     }
 
     // MARK: Row actions

@@ -5,6 +5,7 @@ import AppKit
 final class AppSettings {
     private static let terminalKey = "terminalAppPath"
     private static let refreshKey = "refreshIntervalMinutes"
+    private static let positionKey = "widgetPosition"
     private static let builtInTerminalID = "com.apple.Terminal"
 
     /// Minutes between automatic GitHub refreshes. 0 means manual only.
@@ -16,6 +17,7 @@ final class AppSettings {
 
     private(set) var terminalAppPath: String?
     private(set) var refreshIntervalMinutes = 30
+    private(set) var widgetPosition: WidgetPosition = .topRight
 
     init() {
         terminalAppPath = UserDefaults.standard.string(forKey: Self.terminalKey)
@@ -23,12 +25,21 @@ final class AppSettings {
            Self.refreshOptions.contains(saved) {
             refreshIntervalMinutes = saved
         }
+        if let raw = UserDefaults.standard.string(forKey: Self.positionKey),
+           let saved = WidgetPosition(rawValue: raw) {
+            widgetPosition = saved
+        }
     }
 
     func setRefreshInterval(_ minutes: Int) {
         guard Self.refreshOptions.contains(minutes) else { return }
         refreshIntervalMinutes = minutes
         UserDefaults.standard.set(minutes, forKey: Self.refreshKey)
+    }
+
+    func setWidgetPosition(_ position: WidgetPosition) {
+        widgetPosition = position
+        UserDefaults.standard.set(position.rawValue, forKey: Self.positionKey)
     }
 
     /// Pass nil to go back to Apple's Terminal.
