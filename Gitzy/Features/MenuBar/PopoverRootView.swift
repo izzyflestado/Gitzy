@@ -1,47 +1,36 @@
 import SwiftUI
 
-/// Milestone 2 placeholder. The real Contributions and Projects tabs arrive in Milestone 5.
-/// The controls below exist only to test the branch widget; they are removed in Milestone 6.
+/// Milestone 3 placeholder. The real Contributions and Projects tabs arrive in Milestone 5.
+/// The widget toggle is a test control that is removed in Milestone 6.
 struct PopoverRootView: View {
     let widget: BranchWidgetController
+    let projects: ProjectStore
+    let settings: AppSettings
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Gitzy")
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("Gitzy").font(.headline)
+                Spacer()
+                Button("Quit") { NSApp.terminate(nil) }
+                    .controlSize(.small)
+            }
 
-            Text("Milestone 2 test controls")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            Toggle("Show branch widget", isOn: Binding(
+            Toggle("Show branch widget (test)", isOn: Binding(
                 get: { widget.isVisible },
                 set: { widget.setVisible($0) }
             ))
             .toggleStyle(.checkbox)
 
-            Picker("Widget style", selection: Binding(
-                get: { widget.backdrop },
-                set: { widget.setBackdrop($0) }
-            )) {
-                ForEach(WidgetBackdrop.allCases) { style in
-                    Text(style.label).tag(style)
-                }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-
             Text(widget.elevationSummary)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .frame(height: 30, alignment: .topLeading)
 
-            Text("To test: show the widget, then open a fullscreen app. It should sit under the notch, above the app, and never take focus.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            Divider()
 
-            Spacer()
-
-            Button("Quit Gitzy") { NSApp.terminate(nil) }
+            ProjectsTestView(store: projects, settings: settings)
         }
         .padding(16)
         .frame(width: 360, height: 440, alignment: .topLeading)

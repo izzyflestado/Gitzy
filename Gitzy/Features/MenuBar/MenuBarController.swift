@@ -6,7 +6,7 @@ final class MenuBarController: NSObject {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let popover = NSPopover()
 
-    init(widget: BranchWidgetController) {
+    init(widget: BranchWidgetController, projects: ProjectStore, settings: AppSettings) {
         super.init()
 
         if let button = statusItem.button {
@@ -16,7 +16,7 @@ final class MenuBarController: NSObject {
         }
 
         // The popover size is set once here and never changed afterwards.
-        let hosting = NSHostingController(rootView: PopoverRootView(widget: widget))
+        let hosting = NSHostingController(rootView: PopoverRootView(widget: widget, projects: projects, settings: settings))
         hosting.sizingOptions = []   // stop SwiftUI from resizing the popover to its content
         popover.contentViewController = hosting
         popover.contentSize = NSSize(width: 360, height: 440)
