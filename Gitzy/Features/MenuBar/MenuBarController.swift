@@ -6,7 +6,7 @@ final class MenuBarController: NSObject {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let popover = NSPopover()
 
-    init(widget: BranchWidgetController, projects: ProjectStore, settings: AppSettings) {
+    init(widget: BranchWidgetController, projects: ProjectStore, contributions: ContributionStore, settings: AppSettings) {
         super.init()
 
         if let button = statusItem.button {
@@ -16,7 +16,8 @@ final class MenuBarController: NSObject {
         }
 
         // The popover size is set once here and never changed afterwards.
-        let hosting = NSHostingController(rootView: PopoverRootView(widget: widget, projects: projects, settings: settings))
+        let root = PopoverRootView(widget: widget, projects: projects, contributions: contributions, settings: settings)
+        let hosting = NSHostingController(rootView: root)
         hosting.sizingOptions = []   // stop SwiftUI from resizing the popover to its content
         popover.contentViewController = hosting
         popover.contentSize = NSSize(width: 360, height: 440)
@@ -29,7 +30,10 @@ final class MenuBarController: NSObject {
         if popover.isShown {
             popover.performClose(nil)
         } else {
+            // A menu bar app is not the active app. Becoming active lets the token field take keyboard input.
+            NSApp.activate()
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            popover.contentViewController?.view.window?.makeKey()
         }
     }
 }

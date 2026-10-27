@@ -3,7 +3,7 @@ import SwiftUI
 /// One project: name, branch, and the Finder / Terminal / remove buttons. Fixed height so lists never shift.
 struct ProjectRowView: View {
     let row: ProjectRow
-    let onReveal: () -> Void
+    let onFinder: () -> Void
     let onTerminal: () -> Void
     let onRemove: () -> Void
 
@@ -23,7 +23,7 @@ struct ProjectRowView: View {
 
             Spacer(minLength: 8)
 
-            Button(action: onReveal) { Image(systemName: "folder") }
+            Button(action: onFinder) { Image(systemName: "folder") }
                 .help("Open in Finder")
                 .disabled(row.status.isMissing)
             Button(action: onTerminal) { Image(systemName: "terminal") }

@@ -88,7 +88,7 @@ final class ProjectStore {
     // MARK: Row actions
 
     /// Opens the project folder itself in Finder, so its contents are showing.
-    func reveal(_ project: GitProject) {
+    func openInFinder(_ project: GitProject) {
         NSWorkspace.shared.open(URL(fileURLWithPath: project.path, isDirectory: true))
     }
 

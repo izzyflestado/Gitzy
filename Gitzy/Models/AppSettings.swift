@@ -1,16 +1,34 @@
 import AppKit
 
-/// User settings stored in UserDefaults. Milestone 3 only needs the terminal app;
-/// the rest of the Settings options arrive in later milestones.
+/// User settings stored in UserDefaults. The GitHub token is NOT here; it lives only in the Keychain.
 @Observable
 final class AppSettings {
     private static let terminalKey = "terminalAppPath"
+    private static let refreshKey = "refreshIntervalMinutes"
     private static let builtInTerminalID = "com.apple.Terminal"
 
+    /// Minutes between automatic GitHub refreshes. 0 means manual only.
+    static let refreshOptions = [15, 30, 60, 0]
+
+    static func intervalLabel(_ minutes: Int) -> String {
+        minutes == 0 ? "Manual only" : "\(minutes) min"
+    }
+
     private(set) var terminalAppPath: String?
+    private(set) var refreshIntervalMinutes = 30
 
     init() {
         terminalAppPath = UserDefaults.standard.string(forKey: Self.terminalKey)
+        if let saved = UserDefaults.standard.object(forKey: Self.refreshKey) as? Int,
+           Self.refreshOptions.contains(saved) {
+            refreshIntervalMinutes = saved
+        }
+    }
+
+    func setRefreshInterval(_ minutes: Int) {
+        guard Self.refreshOptions.contains(minutes) else { return }
+        refreshIntervalMinutes = minutes
+        UserDefaults.standard.set(minutes, forKey: Self.refreshKey)
     }
 
     /// Pass nil to go back to Apple's Terminal.

@@ -34,7 +34,7 @@ struct ProjectsTestView: View {
                     ForEach(store.rows) { row in
                         ProjectRowView(
                             row: row,
-                            onReveal: { store.reveal(row.project) },
+                            onFinder: { store.openInFinder(row.project) },
                             onTerminal: { store.openInTerminal(row.project) },
                             onRemove: { store.remove(row.project) }
                         )
