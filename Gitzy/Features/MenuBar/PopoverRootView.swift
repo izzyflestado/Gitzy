@@ -1,7 +1,10 @@
 import SwiftUI
 
-/// Milestone 4 placeholder with three test tabs. The real Contributions and Projects tabs, the footer
-/// and the Settings window arrive in Milestone 5. The Widget tab is the temporary home of the widget controls.
+/// The popover: the name, the three tabs (centred), the chosen tab, and a footer that always sits at the bottom.
+/// The Widget and GitHub tabs are still temporary test layouts, and the Settings window does not exist yet.
+///
+/// Animations are switched off section by section rather than once at the top, because the spinning refresh icon
+/// in the Projects tab is the one animation the app allows itself.
 struct PopoverRootView: View {
     let widget: BranchWidgetController
     let projects: ProjectStore
@@ -9,51 +12,78 @@ struct PopoverRootView: View {
     let settings: AppSettings
 
     private enum Tab: Hashable {
-        case github, projects, widget
+        case projects, widget, github
     }
 
-    @State private var tab: Tab = .github
+    @State private var tab: Tab = .projects
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text("Gitzy").font(.headline)
-                Spacer()
-                Button("Quit") { NSApp.terminate(nil) }
-                    .controlSize(.small)
-            }
+        VStack(spacing: 10) {
+            Text("Gitzy").font(.headline)
 
             Picker("Tab", selection: $tab) {
-                Text("GitHub").tag(Tab.github)
                 Text("Projects").tag(Tab.projects)
                 Text("Widget").tag(Tab.widget)
+                Text("GitHub").tag(Tab.github)
             }
             .pickerStyle(.segmented)
             .labelsHidden()
+            .frame(width: 270)
+            .transaction { $0.animation = nil }
 
             Group {
                 switch tab {
-                case .github:
-                    githubTab
                 case .projects:
-                    ProjectsTestView(store: projects, settings: settings)
+                    ProjectsTestView(store: projects)
                 case .widget:
                     widgetTab
+                case .github:
+                    githubTab
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+
+            footer
         }
         .padding(16)
-        .frame(width: 360, height: 440, alignment: .topLeading)
+        .frame(width: 360, height: 440, alignment: .top)
+    }
+
+    // MARK: Footer
+
+    private var footer: some View {
+        VStack(spacing: 10) {
+            Divider()
+            HStack {
+                Button(action: {}) {
+                    Label("Settings", systemImage: "gearshape")
+                }
+                .disabled(true)   // the Settings window is built in a later step
+                .help("The Settings window comes in a later step")
+
+                Spacer()
+
+                Button("Quit") { NSApp.terminate(nil) }
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.regular)
+        }
         .transaction { $0.animation = nil }
     }
 
+    // MARK: Tabs
+
+    /// Scrolls only when it does not fit, so the footer never pushes anything out of view.
     private var githubTab: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            ContributionsTestView(store: contributions, settings: settings)
-            Divider()
-            GitHubTokenSection(store: contributions)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 10) {
+                ContributionsTestView(store: contributions, settings: settings)
+                Divider()
+                GitHubTokenSection(store: contributions)
+            }
         }
+        .scrollBounceBehavior(.basedOnSize)
+        .transaction { $0.animation = nil }
     }
 
     private var widgetTab: some View {
@@ -91,5 +121,6 @@ struct PopoverRootView: View {
             .foregroundStyle(.secondary)
             .frame(height: 64, alignment: .topLeading)
         }
+        .transaction { $0.animation = nil }
     }
 }

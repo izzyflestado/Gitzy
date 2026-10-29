@@ -6,7 +6,10 @@ import Observation
 @Observable
 final class ProjectStore {
     private(set) var rows: [ProjectRow] = []
-    private(set) var message = "Add a project or scan a folder."
+    /// Set only when something did not work and nothing on screen would say so (a folder that is not a repository,
+    /// a scan that found nothing, a terminal that would not open). Adding, scanning and removing say nothing
+    /// when they succeed. It stays until the next action clears it.
+    private(set) var problem: String?
     private(set) var isScanning = false
 
     /// Called whenever the list changes, so the branch widget can match what it detected against the new list.
@@ -14,6 +17,7 @@ final class ProjectStore {
 
     @ObservationIgnored private var projects: [GitProject]
     @ObservationIgnored private var scanTask: Task<[URL], Never>?
+    @ObservationIgnored private var problemTask: Task<Void, Never>?
     private let settings: AppSettings
     private static let defaultsKey = "projectPaths"
 
@@ -26,24 +30,39 @@ final class ProjectStore {
 
     // MARK: Adding and removing
 
+    func clearProblem() {
+        problemTask?.cancel()
+        problemTask = nil
+        problem = nil
+    }
+
+    /// Shows a problem and removes it by itself after 5 seconds. A newer problem restarts the 5 seconds.
+    private func show(_ text: String) {
+        problemTask?.cancel()
+        problem = text
+        problemTask = Task {
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled else { return }
+            problem = nil
+        }
+    }
+
     func addProject(at folder: URL) {
+        problem = nil
         Task {
             let isRepository = await Task.detached { GitRepositoryService.isRepository(at: folder) }.value
             guard isRepository else {
-                message = "\(folder.lastPathComponent) is not a Git repository."
+                show("\(folder.lastPathComponent) is not a Git repository.")
                 return
             }
-            let result = merge([folder])
-            message = result.added == 1
-                ? "Added \(folder.lastPathComponent)."
-                : "\(folder.lastPathComponent) is already in the list."
+            merge([folder])
         }
     }
 
     func scan(folder: URL) {
         scanTask?.cancel()
+        problem = nil
         isScanning = true
-        message = "Scanning \(folder.lastPathComponent)…"
 
         let work = Task.detached(priority: .utility) {
             ProjectScanner.scan(root: folder)
@@ -55,9 +74,11 @@ final class ProjectStore {
             guard scanTask == work else { return }   // stopped, or replaced by a newer scan
             scanTask = nil
             isScanning = false
-            let result = merge(found)
-            let count = found.count == 1 ? "1 repository" : "\(found.count) repositories"
-            message = "Found \(count): \(result.added) new, \(result.duplicates) already in the list."
+            if found.isEmpty {
+                show("No Git projects found in \(folder.lastPathComponent).")
+            } else {
+                merge(found)
+            }
         }
     }
 
@@ -65,15 +86,14 @@ final class ProjectStore {
         scanTask?.cancel()
         scanTask = nil
         isScanning = false
-        message = "Scan stopped."
     }
 
     /// Removes the project from Gitzy only. The folder itself is never touched.
     func remove(_ project: GitProject) {
+        problem = nil
         projects.removeAll { $0 == project }
         rows.removeAll { $0.project == project }
         save()
-        message = "Removed \(project.name) from Gitzy. Its files were not touched."
         onProjectsChanged?()
     }
 
@@ -99,8 +119,9 @@ final class ProjectStore {
 
     /// Hands the folder to the chosen terminal app. No AppleScript, so no extra permission.
     func openInTerminal(_ project: GitProject) {
+        problem = nil
         guard let app = settings.terminalAppURL else {
-            message = "No terminal app found. Choose one below."
+            show("No terminal app found.")
             return
         }
         Task {
@@ -108,30 +129,24 @@ final class ProjectStore {
                 let folder = URL(fileURLWithPath: project.path, isDirectory: true)
                 _ = try await NSWorkspace.shared.open([folder], withApplicationAt: app, configuration: NSWorkspace.OpenConfiguration())
             } catch {
-                message = "Could not open \(app.deletingPathExtension().lastPathComponent): \(error.localizedDescription)"
+                show("Could not open \(app.deletingPathExtension().lastPathComponent): \(error.localizedDescription)")
             }
         }
     }
 
     // MARK: Private
 
-    /// Adds folders that are not already listed. Returns how many were new and how many were duplicates.
-    private func merge(_ folders: [URL]) -> (added: Int, duplicates: Int) {
+    /// Adds the folders that are not already listed. Folders already in the list are skipped without a word.
+    private func merge(_ folders: [URL]) {
         var known = Set(projects.map(\.path))
-        var added = 0
-        var duplicates = 0
         for folder in folders {
             let path = GitRepositoryService.resolvedPath(of: folder)
             if known.insert(path).inserted {
                 projects.append(GitProject(path: path))
-                added += 1
-            } else {
-                duplicates += 1
             }
         }
         save()
         Task { await refresh() }
-        return (added, duplicates)
     }
 
     private func save() {
