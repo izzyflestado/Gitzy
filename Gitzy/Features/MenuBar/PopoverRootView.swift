@@ -1,10 +1,10 @@
 import SwiftUI
 
 /// The popover: the name, the three tabs (centred), the chosen tab, and a footer that always sits at the bottom.
-/// The Widget and GitHub tabs are still temporary test layouts, and the Settings window does not exist yet.
+/// The GitHub tab is still a temporary test layout, and the Settings window does not exist yet.
 ///
-/// Animations are switched off section by section rather than once at the top, because the spinning refresh icon
-/// in the Projects tab is the one animation the app allows itself.
+/// Animations are switched off section by section rather than once at the top, because the two spinning icons
+/// (Refresh in the Projects tab, Reset in the Widget tab) are the only animations the app allows itself.
 struct PopoverRootView: View {
     let widget: BranchWidgetController
     let projects: ProjectStore
@@ -36,7 +36,7 @@ struct PopoverRootView: View {
                 case .projects:
                     ProjectsTestView(store: projects)
                 case .widget:
-                    widgetTab
+                    WidgetTabView(widget: widget, settings: settings)
                 case .github:
                     githubTab
                 }
@@ -83,44 +83,6 @@ struct PopoverRootView: View {
             }
         }
         .scrollBounceBehavior(.basedOnSize)
-        .transaction { $0.animation = nil }
-    }
-
-    private var widgetTab: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Toggle("Show branch widget", isOn: Binding(
-                get: { widget.isVisible },
-                set: { widget.setVisible($0) }
-            ))
-            .toggleStyle(.checkbox)
-
-            HStack {
-                Text("Position")
-                Spacer()
-                Picker("Position", selection: Binding(
-                    get: { settings.widgetPosition },
-                    set: { widget.setPosition($0) }
-                )) {
-                    ForEach(WidgetPosition.allCases) { position in
-                        Text(position.label).tag(position)
-                    }
-                }
-                .labelsHidden()
-                .frame(width: 140)
-            }
-
-            // Fixed height, so a longer message never moves anything.
-            VStack(alignment: .leading, spacing: 4) {
-                Text(widget.detectionSummary)
-                    .lineLimit(3)
-                    .truncationMode(.middle)
-                Text(widget.elevationSummary)
-                    .lineLimit(2)
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .frame(height: 64, alignment: .topLeading)
-        }
         .transaction { $0.animation = nil }
     }
 }

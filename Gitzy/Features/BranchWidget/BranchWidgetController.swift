@@ -75,10 +75,49 @@ final class BranchWidgetController {
         if isVisible { refreshContent() }
     }
 
+    // MARK: Look
+
+    /// A different size changes the panel's size, so it is measured and placed again.
+    func setScale(_ value: Double) {
+        settings.setWidgetScale(value)
+        if isVisible { refreshContent() }
+    }
+
+    /// Colours do not change the size, so only the drawing is refreshed. That keeps dragging on a colour wheel cheap.
+    func setBackground(_ color: RGBAColor?) {
+        settings.setWidgetBackground(color)
+        refreshLook()
+    }
+
+    func setTextColor(_ color: RGBAColor?) {
+        settings.setWidgetTextColor(color)
+        refreshLook()
+    }
+
+    /// Size and both colours back to default.
+    func resetAppearance() {
+        settings.resetWidgetAppearance()
+        if isVisible { refreshContent() }
+    }
+
+    private func refreshLook() {
+        if isVisible { hostingView.rootView = makeView() }
+    }
+
     private var widgetText: String { head?.label ?? "No project" }
 
+    private func makeView() -> BranchWidgetView {
+        BranchWidgetView(
+            branch: widgetText,
+            backdrop: .glass,
+            scale: CGFloat(settings.widgetScale),
+            background: settings.widgetBackground?.color,
+            textColor: settings.widgetTextColor?.color
+        )
+    }
+
     private func refreshContent() {
-        let view = BranchWidgetView(branch: widgetText, backdrop: .glass)
+        let view = makeView()
         hostingView.rootView = view
         guard let screen = NSScreen.screens.first else { return }   // first screen = the one with the menu bar
         // Measure a fresh view, so the size is right straight after the text changed.
