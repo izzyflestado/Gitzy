@@ -1,6 +1,6 @@
 import AppKit
 
-/// User settings stored in UserDefaults. The GitHub token is NOT here; it lives only in the Keychain.
+/// User settings stored in UserDefaults. The GitHub token is NOT here; it lives only in its own private file (see TokenFile).
 @Observable
 final class AppSettings {
     private static let terminalKey = "terminalAppPath"

@@ -4,8 +4,8 @@ import Observation
 /// Everything about the GitHub connection, shared by every view: whether we are connected,
 /// the last successful contribution data, and the one refresh timer.
 ///
-/// The token itself is never held here. It is read from the Keychain for each request and handed
-/// straight to GitHubService, so it is never stored in a property, in UserDefaults, or in a log.
+/// The token itself is never held here. It is read from its private file (see TokenFile) for each request and
+/// handed straight to GitHubService, so it is never stored in a property, in UserDefaults, or in a log.
 @Observable
 final class ContributionStore {
     // What the views show.
@@ -18,7 +18,6 @@ final class ContributionStore {
     private(set) var tokenMessage: String?
     private(set) var tokenMessageIsError = false
     private(set) var tokenWarning: String?
-    private(set) var tokenStorage: KeychainService.Storage?
     /// True when a scheduled refresh was skipped because Low Power Mode is on.
     private(set) var pausedForLowPower = false
     /// Result of the Milestone 4 earlier-years test.
@@ -31,7 +30,7 @@ final class ContributionStore {
     private let service = GitHubService()
     @ObservationIgnored private var timer: Timer?
     @ObservationIgnored private var refreshTask: Task<Void, Never>?
-    /// The Keychain clean-up of the last Disconnect. A new token is not saved until it has finished.
+    /// The token-file clean-up of the last Disconnect. A new token is not saved until it has finished.
     @ObservationIgnored private var disconnectTask: Task<Void, Never>?
     /// Do not contact GitHub before this moment (rate limit).
     @ObservationIgnored private var blockedUntil: Date?
@@ -45,16 +44,13 @@ final class ContributionStore {
         self.settings = settings
         login = UserDefaults.standard.string(forKey: Self.loginKey)
         guard login != nil else { return }
-        Task {
-            tokenStorage = await Task.detached { KeychainService.currentStorage() }.value
-        }
         refresh()
         restartTimer()
     }
 
     // MARK: Connecting
 
-    /// Checks the token with GitHub, saves it in the Keychain, and starts loading contributions.
+    /// Checks the token with GitHub, saves it in its private file, and starts loading contributions.
     /// Returns true when the token was accepted and saved.
     func connect(token rawToken: String) async -> Bool {
         guard !isCheckingToken else { return false }
@@ -84,14 +80,13 @@ final class ContributionStore {
         }
 
         await disconnectTask?.value   // never let an old Disconnect delete the new token
-        let storage: KeychainService.Storage
         do {
-            storage = try await Task.detached { try KeychainService.save(token: token) }.value
-        } catch let failure as KeychainService.Failure {
-            setTokenMessage("The token is valid, but the Keychain would not save it: \(failure.message)", isError: true)
+            try await Task.detached { try TokenFile.standard.save(token: token) }.value
+        } catch let failure as TokenFile.Failure {
+            setTokenMessage("The token is valid, but it could not be saved. \(failure.message)", isError: true)
             return false
         } catch {
-            setTokenMessage("The token is valid, but the Keychain would not save it.", isError: true)
+            setTokenMessage("The token is valid, but it could not be saved.", isError: true)
             return false
         }
 
@@ -106,11 +101,10 @@ final class ContributionStore {
         refreshError = nil
         pausedForLowPower = false
         login = info.login
-        tokenStorage = storage
         UserDefaults.standard.set(info.login, forKey: Self.loginKey)
         await service.clearCache()
 
-        setTokenMessage("Connected as @\(info.login). The token is stored in the \(storage.label).", isError: false)
+        setTokenMessage("Connected as @\(info.login). The token is saved on this Mac.", isError: false)
         tokenWarning = ScopeReport(scopes: info.scopes).warning
 
         refresh()
@@ -118,17 +112,16 @@ final class ContributionStore {
         return true
     }
 
-    /// Removes the token from the Keychain and forgets everything that came from GitHub.
+    /// Deletes the saved token and forgets everything that came from GitHub.
     func disconnect() {
         resetConnection()
         setTokenMessage("Disconnecting…", isError: false)
         disconnectTask = Task {
-            await Task.detached { KeychainService.delete() }.value
-            let leftover = await Task.detached { KeychainService.currentStorage() }.value
-            if leftover == nil {
-                setTokenMessage("Disconnected. The token was removed from the Keychain. To make it useless everywhere, also delete it at github.com/settings/tokens.", isError: false)
+            let removed = await Task.detached { TokenFile.standard.delete() }.value
+            if removed {
+                setTokenMessage("Disconnected. The saved token was deleted. To make it useless everywhere, also delete it at github.com/settings/tokens.", isError: false)
             } else {
-                setTokenMessage("Disconnected, but the Keychain would not remove the token. Delete the item named \"Gitzy GitHub token\" in Keychain Access.", isError: true)
+                setTokenMessage("Disconnected, but Gitzy could not delete its token file. Delete the file named github-token in the Gitzy folder inside ~/Library/Application Support.", isError: true)
             }
             await service.clearCache()
         }
@@ -151,7 +144,7 @@ final class ContributionStore {
         let mine = generation
         Task {
             defer { if mine == generation { isCheckingYears = false } }
-            let token = await Task.detached { KeychainService.load() }.value
+            let token = await Task.detached { TokenFile.standard.load().token }.value
             guard mine == generation, let token else { return }
             let years = [thisYear - 1, thisYear - 2, thisYear - 3, thisYear - 4]
             do {
@@ -205,10 +198,18 @@ final class ContributionStore {
             }
         }
 
-        let token = await Task.detached { KeychainService.load() }.value
+        let stored = await Task.detached { TokenFile.standard.load() }.value
         guard mine == generation else { return }
-        guard let token else {
+        let token: String
+        switch stored {
+        case .found(let value):
+            token = value
+        case .missing:
             lostToken()
+            return
+        case .unreadable:
+            // The file is there but could not be read this time. That is not a reason to forget the connection.
+            refreshError = "Gitzy could not read its saved token. Try Refresh again, or use Replace token."
             return
         }
 
@@ -249,7 +250,7 @@ final class ContributionStore {
         }
     }
 
-    /// The Keychain no longer has the token (deleted in Keychain Access, for example).
+    /// There is no saved token any more (the token file was deleted, for example).
     private func lostToken() {
         resetConnection()
         setTokenMessage(GitHubError.noToken.message, isError: true)
@@ -269,7 +270,6 @@ final class ContributionStore {
         pausedForLowPower = false
         yearCheckText = nil
         isCheckingYears = false
-        tokenStorage = nil
         tokenWarning = nil
         UserDefaults.standard.removeObject(forKey: Self.loginKey)
     }

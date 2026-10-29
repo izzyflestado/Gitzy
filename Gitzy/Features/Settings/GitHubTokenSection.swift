@@ -41,7 +41,7 @@ struct GitHubTokenSection: View {
                 Text("Connected as @\(store.login ?? "")")
                     .font(.system(size: 12, weight: .medium))
                     .lineLimit(1)
-                Text(storageText)
+                Text("Token saved on this Mac")
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -86,15 +86,10 @@ struct GitHubTokenSection: View {
     }
 
     private var help: some View {
-        Text("Use a classic token with only the read:user permission. It is stored in your Keychain and is only ever sent to api.github.com. Private contributions count only if \"Include private contributions on my profile\" is switched on in your GitHub profile settings.")
+        Text("Use a classic token with only the read:user permission. It is saved in a private file on this Mac and is only ever sent to api.github.com. Private contributions count only if \"Include private contributions on my profile\" is switched on in your GitHub profile settings.")
             .font(.system(size: 11))
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
-    }
-
-    private var storageText: String {
-        guard let storage = store.tokenStorage else { return "Token stored in the Keychain" }
-        return "Token stored in the \(storage.label)"
     }
 
     // MARK: Actions

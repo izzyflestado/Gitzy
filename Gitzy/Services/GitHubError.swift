@@ -17,7 +17,7 @@ nonisolated enum GitHubError: Error, Equatable, Sendable {
     var message: String {
         switch self {
         case .noToken:
-            return "No token found in the Keychain. Paste a token to connect."
+            return "No saved token found. Paste a token to connect."
         case .invalidToken:
             return "GitHub rejected the token. It may be expired or revoked. Use Replace token."
         case .insufficientScope:
