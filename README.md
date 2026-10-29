@@ -5,5 +5,3 @@ Notes:
 2. Add keybind shortcut to open finder/terminal on current detected project 
 3. Add github repo public own keys in github key to automatically scan repos on acc
 4. Add customize option to the floating widget
-5. Fix asking for keychain
-6. Fix token not staying
