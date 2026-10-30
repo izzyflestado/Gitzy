@@ -10,12 +10,15 @@ final class AppSettings {
     private static let backgroundKey = "widgetBackground"
     private static let textColorKey = "widgetTextColor"
     private static let builtInTerminalID = "com.apple.Terminal"
+    private static let opacityKey = "widgetOpacity"
 
     /// Minutes between automatic GitHub refreshes. 0 means manual only.
     static let refreshOptions = [15, 30, 60, 0]
 
     /// How much smaller or bigger than normal (1.0) the branch widget can be made.
     static let widgetScaleRange: ClosedRange<Double> = 0.75...1.75
+    /// Lowest is 25%, so the widget can never fade out of sight.
+    static let widgetOpacityRange: ClosedRange<Double> = 0.25...1.0
 
     static func intervalLabel(_ minutes: Int) -> String {
         minutes == 0 ? "Manual only" : "\(minutes) min"
@@ -25,7 +28,7 @@ final class AppSettings {
     private(set) var refreshIntervalMinutes = 30
     private(set) var widgetPosition: WidgetPosition = .topRight
     private(set) var widgetScale = 1.0
-    /// Tint of the widget's glass. Nil means the plain, untinted glass.
+    private(set) var widgetOpacity = 1.0
     private(set) var widgetBackground: RGBAColor?
     /// Colour of the widget's text. Nil means the default (soft white).
     private(set) var widgetTextColor: RGBAColor?
@@ -42,6 +45,9 @@ final class AppSettings {
         }
         if let saved = UserDefaults.standard.object(forKey: Self.scaleKey) as? Double {
             widgetScale = Self.clampedScale(saved)
+        }
+        if let saved = UserDefaults.standard.object(forKey: Self.opacityKey) as? Double {
+            widgetOpacity = Self.clampedOpacity(saved)
         }
         widgetBackground = UserDefaults.standard.string(forKey: Self.backgroundKey).flatMap { RGBAColor(hex: $0) }
         widgetTextColor = UserDefaults.standard.string(forKey: Self.textColorKey).flatMap { RGBAColor(hex: $0) }
@@ -81,6 +87,12 @@ final class AppSettings {
         setWidgetScale(1)
         setWidgetBackground(nil)
         setWidgetTextColor(nil)
+        setWidgetOpacity(1)
+    }
+    func setWidgetOpacity(_ value: Double) {
+        let clamped = Self.clampedOpacity(value)
+        widgetOpacity = clamped
+        UserDefaults.standard.set(clamped, forKey: Self.opacityKey)
     }
 
     /// Pass nil to go back to Apple's Terminal.
@@ -105,6 +117,10 @@ final class AppSettings {
 
     private static func clampedScale(_ value: Double) -> Double {
         min(max(value, widgetScaleRange.lowerBound), widgetScaleRange.upperBound)
+    }
+    
+    private static func clampedOpacity(_ value: Double) -> Double {
+        min(max(value, widgetOpacityRange.lowerBound), widgetOpacityRange.upperBound)
     }
 
     private static func save(_ color: RGBAColor?, forKey key: String) {

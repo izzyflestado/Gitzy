@@ -67,6 +67,8 @@ struct WidgetTabView: View {
             header
             sizeRow
                 .transaction { $0.animation = nil }
+            opacityRow
+                .transaction { $0.animation = nil }
             HStack(alignment: .top, spacing: 28) {
                 ColorWheelPicker(title: "Background", color: settings.widgetBackground) { widget.setBackground($0) }
                 ColorWheelPicker(title: "Text", color: settings.widgetTextColor) { widget.setTextColor($0) }
@@ -97,7 +99,7 @@ struct WidgetTabView: View {
 
     private var sizeRow: some View {
         HStack(spacing: 10) {
-            Text("Size")
+            Text("Size").frame(width: 50, alignment: .leading)
             Slider(
                 value: Binding(get: { settings.widgetScale }, set: { widget.setScale($0) }),
                 in: AppSettings.widgetScaleRange,
@@ -111,6 +113,23 @@ struct WidgetTabView: View {
         // The size can only be seen on the widget, so it is only editable while the widget is showing.
         .disabled(!widget.isVisible)
         .help(widget.isVisible ? "Make the widget smaller or bigger" : "Show the widget to change its size")
+    }
+    
+    private var opacityRow: some View {
+        HStack(spacing: 10) {
+            Text("Opacity").frame(width: 50, alignment: .leading)
+            Slider(
+                value: Binding(get: { settings.widgetOpacity }, set: { widget.setOpacity($0) }),
+                in: AppSettings.widgetOpacityRange,
+                step: 0.05
+            )
+            Text("\(Int((settings.widgetOpacity * 100).rounded()))%")
+                .font(.system(size: 11).monospacedDigit())
+                .foregroundStyle(.secondary)
+                .frame(width: 38, alignment: .trailing)
+        }
+        .disabled(!widget.isVisible)
+        .help(widget.isVisible ? "Make the widget more or less see-through" : "Show the widget to change its opacity")
     }
 
     // MARK: Actions

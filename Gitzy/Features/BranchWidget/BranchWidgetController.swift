@@ -82,6 +82,12 @@ final class BranchWidgetController {
         settings.setWidgetScale(value)
         if isVisible { refreshContent() }
     }
+    
+    /// Fades the whole widget by fading its window. No redraw or re-measuring is needed.
+    func setOpacity(_ value: Double) {
+        settings.setWidgetOpacity(value)
+        panel.alphaValue = CGFloat(settings.widgetOpacity)
+    }
 
     /// Colours do not change the size, so only the drawing is refreshed. That keeps dragging on a colour wheel cheap.
     func setBackground(_ color: RGBAColor?) {
@@ -119,6 +125,7 @@ final class BranchWidgetController {
     private func refreshContent() {
         let view = makeView()
         hostingView.rootView = view
+        panel.alphaValue = CGFloat(settings.widgetOpacity)
         guard let screen = NSScreen.screens.first else { return }   // first screen = the one with the menu bar
         // Measure a fresh view, so the size is right straight after the text changed.
         let size = NSHostingView(rootView: view).fittingSize
