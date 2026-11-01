@@ -27,19 +27,19 @@ struct ContributionsTestView: View {
     // MARK: Connected
 
     private var connected: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 0) {
             profileRow
             summary
+                .padding(.top, 14)
                 .transaction { $0.animation = nil }
             graph
+                .padding(.top, 6)
                 .transaction { $0.animation = nil }
-            lastUpdated
-                .transaction { $0.animation = nil }
-            statusLine
+            problemLine
                 .transaction { $0.animation = nil }
         }
     }
-
+    
     // MARK: Profile and refresh
 
     private var profileRow: some View {
@@ -65,7 +65,7 @@ struct ContributionsTestView: View {
             refreshButton
         }
         .frame(height: avatarSize)
-        .padding(.top, 8)
+        .padding(.top, 12)
     }
 
     private var avatarView: some View {
@@ -154,14 +154,16 @@ struct ContributionsTestView: View {
 
     // MARK: Status
 
-    /// One fixed block for errors, warnings and "Loading…", so a message never moves anything below it.
-    private var statusLine: some View {
-        Text(status.text)
-            .font(.system(size: 11))
-            .foregroundStyle(status.isWarning ? Color.orange : Color.secondary)
-            .lineLimit(2)
-            .frame(maxWidth: .infinity, alignment: .topLeading)
-            .frame(height: 28, alignment: .topLeading)
+    /// Only shown when something is wrong (a failed refresh, a rate limit, a token warning). Normally it takes no space.
+    @ViewBuilder private var problemLine: some View {
+        if !store.isLoading, let text = store.refreshError ?? store.tokenWarning {
+            Text(text)
+                .font(.system(size: 11))
+                .foregroundStyle(Color.orange)
+                .lineLimit(2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 10)
+        }
     }
 
     // MARK: Not connected
