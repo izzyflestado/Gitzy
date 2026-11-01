@@ -7,3 +7,4 @@ Notes:
 4. Add customize option to the floating widget
 5. Add repo sort
 6. Add feature: Select which apps currently on screen for branch to be visible
+7. Add open to github repo button
