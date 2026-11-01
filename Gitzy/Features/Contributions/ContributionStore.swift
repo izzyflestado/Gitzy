@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Observation
 
@@ -20,9 +21,10 @@ final class ContributionStore {
     private(set) var tokenWarning: String?
     /// True when a scheduled refresh was skipped because Low Power Mode is on.
     private(set) var pausedForLowPower = false
-    /// Result of the Milestone 4 earlier-years test.
-    private(set) var yearCheckText: String?
-    private(set) var isCheckingYears = false
+    /// True when GitHub has refused the saved token (expired or revoked). The token controls reappear until it is replaced.
+    private(set) var tokenRejected = false
+    /// The profile picture, kept in memory only. Nil until it has downloaded, and the tab shows a plain placeholder.
+    private(set) var avatar: NSImage?
 
     var isConnected: Bool { login != nil }
 
@@ -34,6 +36,9 @@ final class ContributionStore {
     @ObservationIgnored private var disconnectTask: Task<Void, Never>?
     /// Do not contact GitHub before this moment (rate limit).
     @ObservationIgnored private var blockedUntil: Date?
+    /// The picture address `avatar` came from, so the picture is only downloaded again when it changes.
+    @ObservationIgnored private var avatarSource: URL?
+    @ObservationIgnored private var avatarTask: Task<Void, Never>?
     /// Bumped on connect and disconnect so a refresh that was already running cannot write into the new state.
     @ObservationIgnored private var generation = 0
 
@@ -94,12 +99,14 @@ final class ContributionStore {
         refreshTask?.cancel()
         refreshTask = nil
         isLoading = false
-        isCheckingYears = false
-        yearCheckText = nil
-        if info.login != login { snapshot = nil }
+        if info.login != login {
+            snapshot = nil
+            clearAvatar()
+        }
         blockedUntil = nil
         refreshError = nil
         pausedForLowPower = false
+        tokenRejected = false
         login = info.login
         UserDefaults.standard.set(info.login, forKey: Self.loginKey)
         await service.clearCache()
@@ -124,42 +131,6 @@ final class ContributionStore {
                 setTokenMessage("Disconnected, but Gitzy could not delete its token file. Delete the file named github-token in the Gitzy folder inside ~/Library/Application Support.", isError: true)
             }
             await service.clearCache()
-        }
-    }
-
-    /// Milestone 4 test: fetches the totals of the four years before this one in a single request,
-    /// the same request used to extend long streaks, so they can be compared with the GitHub profile.
-    func checkEarlierYears() {
-        guard isConnected, !isCheckingYears else { return }
-        guard let newest = snapshot?.weeks.last?.last?.date, let thisYear = Int(newest.prefix(4)) else {
-            yearCheckText = "Load your contributions first."
-            return
-        }
-        if let until = blockedUntil, until > Date() {
-            yearCheckText = GitHubError.rateLimited(retryAfter: until).message
-            return
-        }
-        isCheckingYears = true
-        yearCheckText = "Checking…"
-        let mine = generation
-        Task {
-            defer { if mine == generation { isCheckingYears = false } }
-            let token = await Task.detached { TokenFile.standard.load().token }.value
-            guard mine == generation, let token else { return }
-            let years = [thisYear - 1, thisYear - 2, thisYear - 3, thisYear - 4]
-            do {
-                let totals = try await service.yearTotals(years, token: token)
-                guard mine == generation else { return }
-                yearCheckText = years.map { "\($0): \(totals[$0] ?? 0)" }.joined(separator: "   ")
-            } catch is CancellationError {
-                return
-            } catch let error as GitHubError {
-                guard mine == generation else { return }
-                yearCheckText = error.message
-            } catch {
-                guard mine == generation else { return }
-                yearCheckText = GitHubError.network.message
-            }
         }
     }
 
@@ -209,7 +180,7 @@ final class ContributionStore {
             return
         case .unreadable:
             // The file is there but could not be read this time. That is not a reason to forget the connection.
-            refreshError = "Gitzy could not read its saved token. Try Refresh again, or use Replace token."
+            refreshError = "Gitzy could not read its saved token. Try Refresh again."
             return
         }
 
@@ -220,6 +191,8 @@ final class ContributionStore {
             refreshError = nil
             blockedUntil = nil
             pausedForLowPower = false
+            tokenRejected = false
+            loadAvatarIfNeeded(for: result)
         } catch is CancellationError {
             return
         } catch let error as GitHubError {
@@ -239,8 +212,9 @@ final class ContributionStore {
             refreshError = GitHubError.rateLimited(retryAfter: until).message
         case .invalidToken:
             // A rejected token will not start working by itself, so stop the schedule.
-            // Manual refresh still works, and Replace token fixes it.
+            // Manual refresh still works, and replacing the token fixes it.
             refreshError = error.message
+            tokenRejected = true
             timer?.invalidate()
             timer = nil
         case .noToken:
@@ -268,15 +242,43 @@ final class ContributionStore {
         refreshError = nil
         blockedUntil = nil
         pausedForLowPower = false
-        yearCheckText = nil
-        isCheckingYears = false
+        tokenRejected = false
         tokenWarning = nil
+        clearAvatar()
         UserDefaults.standard.removeObject(forKey: Self.loginKey)
     }
 
     private func setTokenMessage(_ text: String, isError: Bool) {
         tokenMessage = text
         tokenMessageIsError = isError
+    }
+
+    // MARK: Profile picture
+
+    /// Downloads the picture the first time, and again only when GitHub's address for it changes.
+    /// A failed download changes nothing: the placeholder (or the previous picture) stays, and the next refresh tries again.
+    private func loadAvatarIfNeeded(for snapshot: ContributionSnapshot) {
+        guard let url = snapshot.avatarURL else { return }
+        if url == avatarSource, avatar != nil { return }
+        avatarTask?.cancel()
+        let mine = generation
+        avatarTask = Task {
+            do {
+                let data = try await service.loadAvatar(from: url)
+                guard mine == generation, !Task.isCancelled, let image = NSImage(data: data) else { return }
+                avatar = image
+                avatarSource = url
+            } catch {
+                // Nothing to report: the picture is a nicety, and the token was never involved.
+            }
+        }
+    }
+
+    private func clearAvatar() {
+        avatarTask?.cancel()
+        avatarTask = nil
+        avatar = nil
+        avatarSource = nil
     }
 
     // MARK: The one timer

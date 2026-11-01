@@ -6,12 +6,16 @@ nonisolated struct TokenInfo: Equatable, Sendable {
     let scopes: [String]?
 }
 
-/// All talking to GitHub. The only address it ever contacts is https://api.github.com/graphql.
+/// All talking to GitHub. It contacts two kinds of address, both over HTTPS:
+/// - https://api.github.com/graphql, for everything, with the token;
+/// - GitHub's profile-picture servers (see AvatarSource), only to download one small picture, never with the token.
 /// It is an actor so its small year cache is safe to touch from any thread.
 actor GitHubService {
     private static let endpoint = URL(string: "https://api.github.com/graphql")!
     private static let firstGitHubYear = 2008
     private static let yearsPerRequest = 4
+    /// A 96 px profile picture is a few kilobytes. Anything this large is not one.
+    private static let maxAvatarBytes = 1_000_000
 
     private let session: URLSession
     /// Whole calendar years that are over. They never change again, so they are fetched once.
@@ -73,6 +77,8 @@ actor GitHubService {
 
         return ContributionSnapshot(
             login: parsed.login,
+            name: parsed.name,
+            avatarURL: AvatarSource.validated(parsed.avatarURL),
             weeks: calendar.weeks,
             totalContributions: calendar.total,
             currentStreak: streak.length,
@@ -80,18 +86,29 @@ actor GitHubService {
         )
     }
 
-    /// Diagnostic for the Milestone 4 test screen: the contribution total of whole earlier years,
-    /// fetched with exactly the request the streak extension uses, so it can be checked against the GitHub profile.
-    func yearTotals(_ years: [Int], token: String) async throws -> [Int: Int] {
-        let request = GitHubQueries.calendarYears(years)
-        let reply = try await post(query: request.query, variables: request.variables, token: token)
-        let parsed = try GitHubParser.parse(reply.data, rateLimitExhausted: reply.rateLimitExhausted, retryAfter: reply.resetDate)
-        var totals: [Int: Int] = [:]
-        for year in years {
-            guard let calendar = parsed.calendars["y\(year)"] else { throw GitHubError.unexpectedResponse }
-            totals[year] = calendar.total
+    /// Downloads the profile picture. This is the one request that does not go to api.github.com,
+    /// and the one that never carries the token. The address has to pass AvatarSource first.
+    /// Nothing is cached: the session keeps no disk cache, and the caller keeps the picture in memory only.
+    func loadAvatar(from url: URL) async throws -> Data {
+        guard let safe = AvatarSource.validated(url.absoluteString) else { throw GitHubError.unexpectedResponse }
+        var request = URLRequest(url: safe)
+        request.httpMethod = "GET"
+        request.timeoutInterval = 15
+        request.setValue("Gitzy", forHTTPHeaderField: "User-Agent")
+        request.setValue("image/*", forHTTPHeaderField: "Accept")
+
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch let error as URLError {
+            if error.code == .cancelled { throw CancellationError() }
+            throw GitHubError.from(urlError: error)
         }
-        return totals
+        guard let http = response as? HTTPURLResponse, http.statusCode == 200, data.count <= Self.maxAvatarBytes else {
+            throw GitHubError.unexpectedResponse
+        }
+        return data
     }
 
     // MARK: Private

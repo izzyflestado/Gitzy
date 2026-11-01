@@ -7,8 +7,10 @@ nonisolated enum GitHubQueries {
     private static let calendarFields =
         "contributionCalendar { totalContributions weeks { contributionDays { date contributionCount contributionLevel weekday } } }"
 
-    /// GitHub's own graph: the last year, ending now.
-    static let lastYear = "query { viewer { login contributionsCollection { \(calendarFields) } } }"
+    /// GitHub's own graph: the last year, ending now. The same request also brings the display name and the
+    /// address of the profile picture (96 px, enough for a 36 pt picture on a sharp screen). Both are public
+    /// profile information, so the read:user permission already covers them.
+    static let lastYear = "query { viewer { login name avatarUrl(size: 96) contributionsCollection { \(calendarFields) } } }"
 
     /// One whole calendar year per alias (`y2025`), all in a single request.
     /// Each window is just under one year long, which is the most GitHub allows per collection.
@@ -34,6 +36,10 @@ nonisolated struct ParsedCalendar: Equatable, Sendable {
 
 nonisolated struct ParsedResponse: Equatable, Sendable {
     let login: String
+    /// Nil when the reply did not ask for it, or the person has no display name.
+    let name: String?
+    /// The address exactly as GitHub wrote it. Not trusted yet: AvatarSource decides whether it may be used.
+    let avatarURL: String?
     /// Keyed by the name GitHub used: "contributionsCollection" or an alias like "y2025".
     let calendars: [String: ParsedCalendar]
 }
@@ -72,7 +78,13 @@ nonisolated enum GitHubParser {
             }
             calendars[name] = ParsedCalendar(total: calendar.totalContributions, weeks: weeks)
         }
-        return ParsedResponse(login: viewer.login, calendars: calendars)
+        let name = viewer.name?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return ParsedResponse(
+            login: viewer.login,
+            name: (name?.isEmpty ?? true) ? nil : name,
+            avatarURL: viewer.avatarUrl,
+            calendars: calendars
+        )
     }
 }
 
@@ -92,16 +104,23 @@ private nonisolated struct ErrorPayload: Decodable {
     let message: String
 }
 
-/// `viewer` holds `login` plus one calendar per alias, and the alias names are not fixed.
+/// `viewer` holds the profile fields plus one calendar per alias, and the alias names are not fixed.
 private nonisolated struct ViewerPayload: Decodable {
+    /// Every key that is profile information. Anything else in `viewer` is a calendar.
+    private static let profileKeys: Set<String> = ["login", "name", "avatarUrl"]
+
     let login: String
+    let name: String?
+    let avatarUrl: String?
     let collections: [String: CollectionPayload]
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: AnyKey.self)
         login = try container.decode(String.self, forKey: AnyKey("login"))
+        name = try container.decodeIfPresent(String.self, forKey: AnyKey("name"))
+        avatarUrl = try container.decodeIfPresent(String.self, forKey: AnyKey("avatarUrl"))
         var found: [String: CollectionPayload] = [:]
-        for key in container.allKeys where key.stringValue != "login" {
+        for key in container.allKeys where !Self.profileKeys.contains(key.stringValue) {
             found[key.stringValue] = try container.decode(CollectionPayload.self, forKey: key)
         }
         collections = found

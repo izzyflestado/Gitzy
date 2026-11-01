@@ -74,15 +74,21 @@ struct PopoverRootView: View {
     // MARK: Tabs
 
     /// Scrolls only when it does not fit, so the footer never pushes anything out of view.
+    ///
+    /// The token controls are a stopgap until the Settings window exists. They appear only while there is no
+    /// working token (first run, after Disconnect, or when GitHub has refused it), so that can always be fixed.
+    /// No "no animation" rule is put on the whole tab, because the refresh icon in it spins; the tab itself applies
+    /// that rule to everything else.
     private var githubTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
-                ContributionsTestView(store: contributions, settings: settings)
-                Divider()
-                GitHubTokenSection(store: contributions)
+                ContributionsTestView(store: contributions)
+                if !contributions.isConnected || contributions.tokenRejected {
+                    Divider()
+                    GitHubTokenSection(store: contributions)
+                }
             }
         }
         .scrollBounceBehavior(.basedOnSize)
-        .transaction { $0.animation = nil }
     }
 }
