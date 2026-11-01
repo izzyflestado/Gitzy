@@ -1,6 +1,7 @@
 import SwiftUI
 
 /// The Projects tab: three action buttons on top, then the saved projects.
+/// Rows can be dragged up and down to sort them; the order is saved.
 /// Still the interim design; the final polish arrives in Milestone 5 and reuses ProjectRowView.
 struct ProjectsTestView: View {
     let store: ProjectStore
@@ -49,10 +50,12 @@ struct ProjectsTestView: View {
 
     // MARK: List
 
+    /// A List rather than a ScrollView, because only a List lets rows be dragged into a new order (.onMove).
+    /// The look stays as before: no built-in insets, separators or background (each row draws its own Divider).
     private var list: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                ForEach(store.rows) { row in
+        List {
+            ForEach(store.rows) { row in
+                VStack(spacing: 0) {
                     ProjectRowView(
                         row: row,
                         onFinder: { store.openInFinder(row.project) },
@@ -61,10 +64,15 @@ struct ProjectsTestView: View {
                     )
                     Divider()
                 }
+                // The scroll bar floats over the right edge, so keep the buttons clear of it.
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 14))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
             }
-            // The scroll bar floats over the right edge, so keep the buttons clear of it.
-            .padding(.trailing, 14)
+            .onMove { store.move(fromOffsets: $0, toOffset: $1) }
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
         .frame(maxHeight: .infinity)
         .overlay {
             if store.rows.isEmpty { emptyState }

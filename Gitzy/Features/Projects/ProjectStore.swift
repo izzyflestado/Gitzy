@@ -1,5 +1,6 @@
 import AppKit
 import Observation
+import SwiftUI
 
 /// The saved project list, shared by every view. File work (validation, scanning, reading HEAD)
 /// runs on background tasks; this class only holds the results and talks to the views.
@@ -97,6 +98,18 @@ final class ProjectStore {
         onProjectsChanged?()
     }
 
+    // MARK: Sorting
+
+    /// Called when a row is dragged to a new place. The new order is saved, so it survives a restart.
+    /// Projects that are saved but not showing yet (still being read after an add) keep their place at the end.
+    func move(fromOffsets source: IndexSet, toOffset destination: Int) {
+        rows.move(fromOffsets: source, toOffset: destination)
+        let order = rows.map(\.project)
+        let notShownYet = projects.filter { !order.contains($0) }
+        projects = order + notShownYet
+        save()
+    }
+
     // MARK: Reading state
 
     /// Re-reads every project's branch from its files.
@@ -106,7 +119,12 @@ final class ProjectStore {
         let statuses = await Task.detached {
             paths.map { GitRepositoryService.status(ofProjectAt: $0) }
         }.value
-        rows = zip(snapshot, statuses).map { ProjectRow(project: $0, status: $1) }
+        let statusByPath = Dictionary(zip(paths, statuses), uniquingKeysWith: { first, _ in first })
+        // Follow the current order, not the snapshot's: the list may have been dragged into a new order
+        // (or had a project removed) while the files were being read.
+        rows = projects.compactMap { project in
+            statusByPath[project.path].map { ProjectRow(project: project, status: $0) }
+        }
         onProjectsChanged?()
     }
 
