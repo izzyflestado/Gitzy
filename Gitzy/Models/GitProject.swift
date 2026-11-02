@@ -33,6 +33,7 @@ nonisolated struct ProjectStatus: Equatable, Sendable {
 nonisolated struct ProjectRow: Identifiable, Equatable, Sendable {
     let project: GitProject
     let status: ProjectStatus
+    var detail: String? = nil
 
     var id: String { project.id }
 }

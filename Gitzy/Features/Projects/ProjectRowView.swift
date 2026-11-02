@@ -37,6 +37,8 @@ struct ProjectRowView: View {
     }
 
     private var subtitle: String {
-        row.status.isMissing ? "Folder not found" : row.status.head.label
+        if row.status.isMissing { return "Folder not found" }
+        if let detail = row.detail { return "\(row.status.head.label) · \(detail)" }
+        return row.status.head.label
     }
 }

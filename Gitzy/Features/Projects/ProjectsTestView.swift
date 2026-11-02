@@ -12,6 +12,7 @@ struct ProjectsTestView: View {
     var body: some View {
         VStack(spacing: 10) {
             actions
+            ProjectSortBar(store: store)
             list
         }
     }
