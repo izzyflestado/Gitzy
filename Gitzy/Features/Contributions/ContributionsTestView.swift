@@ -62,9 +62,23 @@ struct ContributionsTestView: View {
             .transaction { $0.animation = nil }
 
             Spacer(minLength: 8)
-            refreshButton
+
+            HStack(spacing: 6) {
+                profileButton
+                refreshButton
+            }
         }
         .frame(height: avatarSize)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.primary.opacity(0.06))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .strokeBorder(Color.primary.opacity(0.12), lineWidth: 1)
+                )
+        }
         .padding(.top, 12)
     }
 
@@ -112,6 +126,30 @@ struct ContributionsTestView: View {
         .disabled(store.isLoading)
         .help("Refresh contributions")
         .accessibilityLabel("Refresh contributions")
+    }
+    
+    /// Opens your GitHub page in the default browser.
+    private var profileButton: some View {
+        Button {
+            if let url = profileURL { NSWorkspace.shared.open(url) }
+        } label: {
+            Image(systemName: "arrow.up.right.square")
+                .font(.system(size: 15, weight: .medium))
+                .frame(width: 28, height: 28)
+        }
+        .buttonStyle(.borderless)
+        .disabled(profileURL == nil)
+        .help("Open @\(store.login ?? "") on GitHub")
+        .accessibilityLabel("Open GitHub profile")
+    }
+
+    /// https://github.com/<user name>. The user name came from the network, so it is only used when it is made of
+    /// the characters GitHub allows in one. Anything else gives no link, and the button stays grayed out.
+    private var profileURL: URL? {
+        guard let login = store.login, !login.isEmpty, login.count <= 64,
+              login.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-" || $0 == "_") })
+        else { return nil }
+        return URL(string: "https://github.com/\(login)")
     }
 
     // MARK: Streak and yearly count
