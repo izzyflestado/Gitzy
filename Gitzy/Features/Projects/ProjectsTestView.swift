@@ -12,7 +12,6 @@ struct ProjectsTestView: View {
     var body: some View {
         VStack(spacing: 10) {
             actions
-            ProjectSortBar(store: store)
             list
         }
     }
@@ -35,7 +34,9 @@ struct ProjectsTestView: View {
                       systemImage: store.isScanning ? "xmark" : "magnifyingglass")
                     .frame(maxWidth: .infinity)
             }
-
+            
+            ProjectSortBar(store: store)
+            
             Button(action: refresh) {
                 Image(systemName: "arrow.clockwise")
                     .rotationEffect(.degrees(Double(refreshTurns) * 360))
@@ -66,13 +67,13 @@ struct ProjectsTestView: View {
                     Divider()
                 }
                 // The scroll bar floats over the right edge, so keep the buttons clear of it.
-                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 14))
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
             }
             .onMove { store.move(fromOffsets: $0, toOffset: $1) }
         }
-        .listStyle(.plain)
+        .listStyle(.inset)
         .scrollContentBackground(.hidden)
         .frame(maxHeight: .infinity)
         .overlay {

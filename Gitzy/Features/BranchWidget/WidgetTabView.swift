@@ -83,8 +83,8 @@ struct WidgetTabView: View {
                 .font(.system(size: 13, weight: .semibold))
 
             Button(action: reset) {
-                Image(systemName: "arrow.counterclockwise")
-                    .rotationEffect(.degrees(Double(resetTurns) * -360))
+                Image(systemName: "arrow.clockwise")
+                    .rotationEffect(.degrees(Double(resetTurns) * 360))
                     .animation(.linear(duration: 1), value: resetTurns)
                     .font(.system(size: 12, weight: .medium))
                     .frame(width: 18, height: 18)
