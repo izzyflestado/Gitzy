@@ -208,6 +208,25 @@ final class ProjectStore {
         NSWorkspace.shared.open(url)
     }
 
+    /// Opens the project in the code editor from Settings (VS Code, or Xcode when that is all there is).
+    /// Xcode gets the project file inside the folder; every other editor gets the folder.
+    func openInIDE(_ project: GitProject) {
+        problem = nil
+        guard let app = settings.ideAppURL else {
+            show("No code editor found. Install VS Code or Xcode.")
+            return
+        }
+        Task {
+            do {
+                let folder = URL(fileURLWithPath: project.path, isDirectory: true)
+                let target = IDETarget.target(forFolder: folder, isXcode: IDETarget.isXcode(appAt: app))
+                _ = try await NSWorkspace.shared.open([target], withApplicationAt: app, configuration: NSWorkspace.OpenConfiguration())
+            } catch {
+                show("Could not open \(app.deletingPathExtension().lastPathComponent): \(error.localizedDescription)")
+            }
+        }
+    }
+
     // MARK: Private
 
     /// Adds the folders that are not already listed. Folders already in the list are skipped without a word.

@@ -10,11 +10,13 @@ struct SettingsView: View {
     let projects: ProjectStore
     let contributions: ContributionStore
     let settings: AppSettings
+    let shortcuts: ShortcutController
 
     var body: some View {
         Form {
             GitHubSettingsSection(store: contributions, settings: settings)
-            // Coming next: Projects (terminal app, default sort, forget all), General, Widget, About.
+            ShortcutsSettingsSection(controller: shortcuts)
+            // Coming next: Projects (terminal app, code editor, default sort, forget all), General, Widget, About.
         }
         .formStyle(.grouped)
         .transaction { $0.animation = nil }

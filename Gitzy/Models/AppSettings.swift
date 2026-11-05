@@ -11,6 +11,9 @@ final class AppSettings {
     private static let textColorKey = "widgetTextColor"
     private static let builtInTerminalID = "com.apple.Terminal"
     private static let opacityKey = "widgetOpacity"
+    private static let ideKey = "ideAppPath"
+    /// Used when no code editor has been chosen: the first of these that is installed.
+    private static let defaultIDEIDs = ["com.microsoft.VSCode", "com.apple.dt.Xcode"]
 
     /// Minutes between automatic GitHub refreshes. 0 means manual only.
     static let refreshOptions = [15, 30, 60, 0]
@@ -25,6 +28,7 @@ final class AppSettings {
     }
 
     private(set) var terminalAppPath: String?
+    private(set) var ideAppPath: String?
     private(set) var refreshIntervalMinutes = 30
     private(set) var widgetPosition: WidgetPosition = .topRight
     private(set) var widgetScale = 1.0
@@ -35,6 +39,7 @@ final class AppSettings {
 
     init() {
         terminalAppPath = UserDefaults.standard.string(forKey: Self.terminalKey)
+        ideAppPath = UserDefaults.standard.string(forKey: Self.ideKey)
         if let saved = UserDefaults.standard.object(forKey: Self.refreshKey) as? Int,
            Self.refreshOptions.contains(saved) {
             refreshIntervalMinutes = saved
@@ -111,6 +116,28 @@ final class AppSettings {
 
     var terminalName: String {
         terminalAppURL?.deletingPathExtension().lastPathComponent ?? "none found"
+    }
+
+    /// Pass nil to go back to the automatic choice (VS Code if it is installed, otherwise Xcode).
+    func setIDEApp(_ url: URL?) {
+        ideAppPath = url?.path
+        UserDefaults.standard.set(url?.path, forKey: Self.ideKey)
+    }
+
+    /// The chosen code editor, or the first of VS Code and Xcode that is installed when none is chosen
+    /// (or the chosen app no longer exists). Nil when there is none.
+    var ideAppURL: URL? {
+        if let path = ideAppPath, FileManager.default.fileExists(atPath: path) {
+            return URL(fileURLWithPath: path)
+        }
+        for id in Self.defaultIDEIDs {
+            if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) { return url }
+        }
+        return nil
+    }
+
+    var ideName: String {
+        ideAppURL?.deletingPathExtension().lastPathComponent ?? "none found"
     }
 
     // MARK: Private

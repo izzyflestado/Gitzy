@@ -153,7 +153,8 @@ final class BranchWidgetController {
             ) { [weak self] note in
                 let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
                 let bundleID = app?.bundleIdentifier
-                Task { @MainActor in self?.appBecameFrontmost(bundleID: bundleID) }
+                guard let self else { return }
+                Task { @MainActor in self.appBecameFrontmost(bundleID: bundleID) }
             }
         )
         observers.append(
@@ -162,7 +163,8 @@ final class BranchWidgetController {
                 object: nil,
                 queue: .main
             ) { [weak self] _ in
-                Task { @MainActor in self?.screenChanged() }
+                guard let self else { return }
+                Task { @MainActor in self.screenChanged() }
             }
         )
     }
@@ -238,7 +240,8 @@ final class BranchWidgetController {
     /// Reads the branch once, then watches for changes. The file work happens off the main thread.
     private func loadAndWatch(_ path: String) {
         let onChange: @Sendable (GitHead) -> Void = { [weak self] newHead in
-            Task { @MainActor in self?.headChanged(newHead, forProjectAt: path) }
+            guard let self else { return }
+            Task { @MainActor in self.headChanged(newHead, forProjectAt: path) }
         }
         Task {
             let loaded = await Task.detached { () -> (head: GitHead, watcher: GitHeadWatcher?) in

@@ -7,6 +7,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var widget: BranchWidgetController?
     private var menuBar: MenuBarController?
     private var settingsWindow: SettingsWindowController?
+    private var shortcuts: ShortcutController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.appearance = NSAppearance(named: .darkAqua)
@@ -19,7 +20,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.projects = projects
         self.contributions = contributions
         self.widget = widget
-        let settingsWindow = SettingsWindowController(widget: widget, projects: projects, contributions: contributions, settings: settings)
+        let shortcuts = ShortcutController(projects: projects)
+        self.shortcuts = shortcuts
+        let settingsWindow = SettingsWindowController(widget: widget, projects: projects, contributions: contributions, settings: settings, shortcuts: shortcuts)
         self.settingsWindow = settingsWindow
         menuBar = MenuBarController(widget: widget, projects: projects, contributions: contributions, settings: settings, settingsWindow: settingsWindow)
     }

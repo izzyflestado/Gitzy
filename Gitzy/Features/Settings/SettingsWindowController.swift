@@ -15,14 +15,16 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     private let projects: ProjectStore
     private let contributions: ContributionStore
     private let settings: AppSettings
+    private let shortcuts: ShortcutController
 
     private var window: NSWindow?
 
-    init(widget: BranchWidgetController, projects: ProjectStore, contributions: ContributionStore, settings: AppSettings) {
+    init(widget: BranchWidgetController, projects: ProjectStore, contributions: ContributionStore, settings: AppSettings, shortcuts: ShortcutController) {
         self.widget = widget
         self.projects = projects
         self.contributions = contributions
         self.settings = settings
+        self.shortcuts = shortcuts
         super.init()
     }
 
@@ -36,7 +38,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     // MARK: Private
 
     private func makeWindow() -> NSWindow {
-        let root = SettingsView(widget: widget, projects: projects, contributions: contributions, settings: settings)
+        let root = SettingsView(widget: widget, projects: projects, contributions: contributions, settings: settings, shortcuts: shortcuts)
         let hosting = NSHostingController(rootView: root)
         hosting.sizingOptions = []   // the window keeps the size set below; SwiftUI does not resize it
 
