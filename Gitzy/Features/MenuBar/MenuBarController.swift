@@ -5,10 +5,14 @@ import SwiftUI
 final class MenuBarController: NSObject {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let popover = NSPopover()
+    private let projects: ProjectStore
+    private let contributions: ContributionStore
     private let settingsWindow: SettingsWindowController
 
     init(widget: BranchWidgetController, projects: ProjectStore, contributions: ContributionStore, settings: AppSettings, settingsWindow: SettingsWindowController) {
         self.settingsWindow = settingsWindow
+        self.projects = projects
+        self.contributions = contributions
         super.init()
 
         if let button = statusItem.button {
@@ -42,7 +46,15 @@ final class MenuBarController: NSObject {
             NSApp.activate()
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()
+            refreshOnOpen()
         }
+    }
+    
+    /// Every time the popover opens, the data in it is read again, so what you see is fresh.
+    /// The GitHub refresh does nothing if one is already running, and waits out a rate limit.
+    private func refreshOnOpen() {
+        contributions.refresh()
+        Task { await projects.refresh() }
     }
 
     /// The popover goes first, then the Settings window is activated and brought to the front.
