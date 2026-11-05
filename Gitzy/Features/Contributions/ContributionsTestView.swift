@@ -1,15 +1,17 @@
 import AppKit
 import SwiftUI
 
-/// The GitHub tab: who you are (with the refresh icon), your streak with this year's contributions at its right,
-/// the graph, and when it was last updated.
+/// The GitHub tab: who you are (with the profile and refresh icons), your streak with this year's contributions
+/// at its right, and the graph.
 ///
-/// The token field and the automatic-refresh choice are not here. They move into the Settings window.
-/// Until that exists, GitHubTokenSection is shown by the popover only while there is no working token.
+/// The token field, the automatic-refresh choice and the last-updated time live in the Settings window.
+/// When there is no token, or GitHub has refused it, this tab points there through `openSettings`.
 ///
 /// "No animation" is applied piece by piece rather than once at the top, so the refresh icon is free to spin.
 struct ContributionsTestView: View {
     let store: ContributionStore
+    /// Opens the Settings window. The not-connected screen and a rejected token both send people there.
+    let openSettings: () -> Void
 
     /// Every press of Refresh adds one full turn, which is what makes the icon spin once.
     @State private var refreshTurns = 0
@@ -195,31 +197,40 @@ struct ContributionsTestView: View {
     /// Only shown when something is wrong (a failed refresh, a rate limit, a token warning). Normally it takes no space.
     @ViewBuilder private var problemLine: some View {
         if !store.isLoading, let text = store.refreshError ?? store.tokenWarning {
-            Text(text)
-                .font(.system(size: 11))
-                .foregroundStyle(Color.orange)
-                .lineLimit(2)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.top, 10)
+            VStack(alignment: .leading, spacing: 6) {
+                Text(text)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.orange)
+                    .lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                // No refresh error means the line is showing the token warning, which also needs a new token.
+                if store.tokenRejected || store.refreshError == nil {
+                    Button("Open Settings", action: openSettings)
+                        .controlSize(.small)
+                }
+            }
+            .padding(.top, 10)
         }
     }
 
     // MARK: Not connected
 
     private var notConnected: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 8) {
             Image(systemName: "person.crop.circle.badge.questionmark")
                 .font(.system(size: 30))
                 .foregroundStyle(.tertiary)
             Text("Not connected to GitHub")
                 .font(.system(size: 13, weight: .medium))
-            Text("Add a token below to see your streak and contributions.")
+            Text("Add a token in Settings to see your streak and contributions.")
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
+            Button("Open Settings", action: openSettings)
+                .padding(.top, 4)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
+        .padding(.top, 48)
         .transaction { $0.animation = nil }
     }
 

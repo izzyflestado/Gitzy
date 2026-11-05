@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// The popover: the name, the three tabs (centred), the chosen tab, and a footer that always sits at the bottom.
-/// The GitHub tab is still a temporary test layout, and the Settings window does not exist yet.
+/// The GitHub tab is still a temporary test layout. The Settings button closes the popover and opens the Settings window.
 ///
 /// Animations are switched off section by section rather than once at the top, because the two spinning icons
 /// (Refresh in the Projects tab, Reset in the Widget tab) are the only animations the app allows itself.
@@ -10,6 +10,8 @@ struct PopoverRootView: View {
     let projects: ProjectStore
     let contributions: ContributionStore
     let settings: AppSettings
+    /// Closes the popover and opens the Settings window.
+    let openSettings: () -> Void
 
     private enum Tab: Hashable {
         case projects, widget, github
@@ -55,11 +57,9 @@ struct PopoverRootView: View {
         VStack(spacing: 10) {
             Divider()
             HStack {
-                Button(action: {}) {
+                Button(action: openSettings) {
                     Label("Settings", systemImage: "gearshape")
                 }
-                .disabled(true)   // the Settings window is built in a later step
-                .help("The Settings window comes in a later step")
 
                 Spacer()
 
@@ -75,19 +75,13 @@ struct PopoverRootView: View {
 
     /// Scrolls only when it does not fit, so the footer never pushes anything out of view.
     ///
-    /// The token controls are a stopgap until the Settings window exists. They appear only while there is no
-    /// working token (first run, after Disconnect, or when GitHub has refused it), so that can always be fixed.
+    /// The token lives in the Settings window. When there is no token, or GitHub has refused it, the tab itself
+    /// points there through `openSettings`.
     /// No "no animation" rule is put on the whole tab, because the refresh icon in it spins; the tab itself applies
     /// that rule to everything else.
     private var githubTab: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 10) {
-                ContributionsTestView(store: contributions)
-                if !contributions.isConnected || contributions.tokenRejected {
-                    Divider()
-                    GitHubTokenSection(store: contributions)
-                }
-            }
+            ContributionsTestView(store: contributions, openSettings: openSettings)
         }
         .scrollBounceBehavior(.basedOnSize)
     }

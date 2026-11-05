@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var contributions: ContributionStore?
     private var widget: BranchWidgetController?
     private var menuBar: MenuBarController?
+    private var settingsWindow: SettingsWindowController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.appearance = NSAppearance(named: .darkAqua)
@@ -18,6 +19,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.projects = projects
         self.contributions = contributions
         self.widget = widget
-        menuBar = MenuBarController(widget: widget, projects: projects, contributions: contributions, settings: settings)
+        let settingsWindow = SettingsWindowController(widget: widget, projects: projects, contributions: contributions, settings: settings)
+        self.settingsWindow = settingsWindow
+        menuBar = MenuBarController(widget: widget, projects: projects, contributions: contributions, settings: settings, settingsWindow: settingsWindow)
     }
+
+    /// Closing the Settings window must never quit the app. Gitzy lives in the menu bar.
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
 }

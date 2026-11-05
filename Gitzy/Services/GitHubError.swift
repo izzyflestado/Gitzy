@@ -19,7 +19,7 @@ nonisolated enum GitHubError: Error, Equatable, Sendable {
         case .noToken:
             return "No saved token found. Paste a token to connect."
         case .invalidToken:
-            return "GitHub rejected the token. It may be expired or revoked. Use Replace token."
+            return "GitHub rejected the token. It may be expired or revoked. Replace it with a new token."
         case .insufficientScope:
             return "The token is missing the read:user permission."
         case .offline:

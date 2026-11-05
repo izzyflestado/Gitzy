@@ -5,8 +5,10 @@ import SwiftUI
 final class MenuBarController: NSObject {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let popover = NSPopover()
+    private let settingsWindow: SettingsWindowController
 
-    init(widget: BranchWidgetController, projects: ProjectStore, contributions: ContributionStore, settings: AppSettings) {
+    init(widget: BranchWidgetController, projects: ProjectStore, contributions: ContributionStore, settings: AppSettings, settingsWindow: SettingsWindowController) {
+        self.settingsWindow = settingsWindow
         super.init()
 
         if let button = statusItem.button {
@@ -16,7 +18,13 @@ final class MenuBarController: NSObject {
         }
 
         // The popover size is set once here and never changed afterwards.
-        let root = PopoverRootView(widget: widget, projects: projects, contributions: contributions, settings: settings)
+        let root = PopoverRootView(
+            widget: widget,
+            projects: projects,
+            contributions: contributions,
+            settings: settings,
+            openSettings: { [weak self] in self?.openSettings() }
+        )
         let hosting = NSHostingController(rootView: root)
         hosting.sizingOptions = []   // stop SwiftUI from resizing the popover to its content
         popover.contentViewController = hosting
@@ -35,5 +43,11 @@ final class MenuBarController: NSObject {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()
         }
+    }
+
+    /// The popover goes first, then the Settings window is activated and brought to the front.
+    private func openSettings() {
+        popover.performClose(nil)
+        settingsWindow.show()
     }
 }
