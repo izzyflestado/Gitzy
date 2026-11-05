@@ -5,4 +5,3 @@ Notes:
 2. Add keybind shortcut to open finder/terminal on current detected project 
 3. Add feature: Select which apps currently on screen for branch to be visible
 4. Add button to open github repo link
-5. Add auto refresh for github repos
