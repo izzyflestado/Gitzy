@@ -27,6 +27,8 @@ nonisolated enum GitHead: Equatable, Sendable {
 nonisolated struct ProjectStatus: Equatable, Sendable {
     let head: GitHead
     let isMissing: Bool
+    /// The repository's page on GitHub, taken from its `origin` remote (or another GitHub remote). Nil when there is none.
+    var githubURL: URL? = nil
 }
 
 /// One line in the project list.

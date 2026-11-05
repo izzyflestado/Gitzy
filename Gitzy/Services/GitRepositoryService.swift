@@ -64,7 +64,11 @@ nonisolated enum GitRepositoryService {
         guard let gitDir = gitDirectory(forRepoAt: folder) else {
             return ProjectStatus(head: .unknown, isMissing: false)
         }
-        return ProjectStatus(head: readHead(inGitDirectory: gitDir), isMissing: false)
+        return ProjectStatus(
+            head: readHead(inGitDirectory: gitDir),
+            isMissing: false,
+            githubURL: GitRemote.githubURL(forGitDirectory: gitDir)
+        )
     }
 
     private static func isObjectID(_ text: String) -> Bool {

@@ -1,10 +1,11 @@
 import SwiftUI
 
-/// One project: name, branch, and the Finder / Terminal / remove buttons. Fixed height so lists never shift.
+/// One project: name, branch, and the Finder / Terminal / GitHub / remove buttons. Fixed height so lists never shift.
 struct ProjectRowView: View {
     let row: ProjectRow
     let onFinder: () -> Void
     let onTerminal: () -> Void
+    let onGitHub: () -> Void
     let onRemove: () -> Void
 
     var body: some View {
@@ -29,11 +30,21 @@ struct ProjectRowView: View {
             Button(action: onTerminal) { Image(systemName: "terminal") }
                 .help("Open in Terminal")
                 .disabled(row.status.isMissing)
+            Button(action: onGitHub) { Image(systemName: "arrow.up.right.square") }
+                .help(githubHelp)
+                .disabled(row.status.isMissing || row.status.githubURL == nil)
+                .accessibilityLabel("Open repository on GitHub")
             Button(action: onRemove) { Image(systemName: "minus.circle") }
                 .help("Remove from Gitzy (files are not deleted)")
         }
         .buttonStyle(.borderless)
         .frame(height: 40)
+    }
+
+    /// "Open octocat/hello on GitHub", or why the button is grayed out.
+    private var githubHelp: String {
+        guard let url = row.status.githubURL else { return "No GitHub remote found" }
+        return "Open \(url.path.dropFirst()) on GitHub"
     }
 
     private var subtitle: String {

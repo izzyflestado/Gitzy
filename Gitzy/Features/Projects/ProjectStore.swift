@@ -200,6 +200,14 @@ final class ProjectStore {
         }
     }
 
+    /// Opens the project's page on GitHub in the default browser.
+    /// The address was built from a checked owner and repository name when the project was read, so nothing else
+    /// from the remote (a password or token in it, say) is ever handed to the browser.
+    func openOnGitHub(_ row: ProjectRow) {
+        guard let url = row.status.githubURL else { return }
+        NSWorkspace.shared.open(url)
+    }
+
     // MARK: Private
 
     /// Adds the folders that are not already listed. Folders already in the list are skipped without a word.
