@@ -24,16 +24,16 @@ struct ProjectRowView: View {
 
             Spacer(minLength: 8)
 
+            Button(action: onGitHub) { Image(systemName: "arrow.up.right.square") }   // moved here
+                .help(githubHelp)
+                .disabled(row.status.isMissing || row.status.githubURL == nil)
+                .accessibilityLabel("Open repository on GitHub")
             Button(action: onFinder) { Image(systemName: "folder") }
                 .help("Open in Finder")
                 .disabled(row.status.isMissing)
             Button(action: onTerminal) { Image(systemName: "terminal") }
                 .help("Open in Terminal")
                 .disabled(row.status.isMissing)
-            Button(action: onGitHub) { Image(systemName: "arrow.up.right.square") }
-                .help(githubHelp)
-                .disabled(row.status.isMissing || row.status.githubURL == nil)
-                .accessibilityLabel("Open repository on GitHub")
             Button(action: onRemove) { Image(systemName: "minus.circle") }
                 .help("Remove from Gitzy (files are not deleted)")
         }
