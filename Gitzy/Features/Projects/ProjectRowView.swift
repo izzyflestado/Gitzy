@@ -2,6 +2,7 @@ import SwiftUI
 
 /// One project: name, branch, and the Finder / Terminal / GitHub / remove buttons. Fixed height so lists never shift.
 struct ProjectRowView: View {
+    let number: Int
     let row: ProjectRow
     let onFinder: () -> Void
     let onTerminal: () -> Void
@@ -11,6 +12,15 @@ struct ProjectRowView: View {
 
     var body: some View {
         HStack(spacing: 8) {
+            // Number, then the GitHub page, then the name.
+            Text("\(number)")
+                .font(.system(size: 11).monospacedDigit())
+                .foregroundStyle(.secondary)
+                .frame(width: 22, alignment: .trailing)
+            Button(action: onGitHub) { Image(systemName: "arrow.up.right.square") }
+                .help(githubHelp)
+                .disabled(row.status.isMissing || row.status.githubURL == nil)
+                .accessibilityLabel("Open repository on GitHub")
             VStack(alignment: .leading, spacing: 2) {
                 Text(row.project.name)
                     .font(.system(size: 13, weight: .medium))
@@ -25,10 +35,6 @@ struct ProjectRowView: View {
 
             Spacer(minLength: 8)
 
-            Button(action: onGitHub) { Image(systemName: "arrow.up.right.square") }   // moved here
-                .help(githubHelp)
-                .disabled(row.status.isMissing || row.status.githubURL == nil)
-                .accessibilityLabel("Open repository on GitHub")
             Button(action: onIDE) { Image(systemName: "chevron.left.forwardslash.chevron.right") }
                 .help("Open in default IDE")
                 .disabled(row.status.isMissing)

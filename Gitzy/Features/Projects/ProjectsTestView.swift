@@ -56,9 +56,10 @@ struct ProjectsTestView: View {
     /// The look stays as before: no built-in insets, separators or background (each row draws its own Divider).
     private var list: some View {
         List {
-            ForEach(store.rows) { row in
+            ForEach(Array(store.rows.enumerated()), id: \.element.id) { index, row in
                 VStack(spacing: 0) {
                     ProjectRowView(
+                        number: index + 1,
                         row: row,
                         onFinder: { store.openInFinder(row.project) },
                         onTerminal: { store.openInTerminal(row.project) },
