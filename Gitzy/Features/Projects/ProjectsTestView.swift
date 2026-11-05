@@ -63,6 +63,7 @@ struct ProjectsTestView: View {
                         onFinder: { store.openInFinder(row.project) },
                         onTerminal: { store.openInTerminal(row.project) },
                         onGitHub: { store.openOnGitHub(row) },
+                        onIDE: { store.openInIDE(row.project) },
                         onRemove: { store.remove(row.project) }
                     )
                     Divider()

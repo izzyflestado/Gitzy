@@ -6,6 +6,7 @@ struct ProjectRowView: View {
     let onFinder: () -> Void
     let onTerminal: () -> Void
     let onGitHub: () -> Void
+    let onIDE: () -> Void
     let onRemove: () -> Void
 
     var body: some View {
@@ -28,6 +29,10 @@ struct ProjectRowView: View {
                 .help(githubHelp)
                 .disabled(row.status.isMissing || row.status.githubURL == nil)
                 .accessibilityLabel("Open repository on GitHub")
+            Button(action: onIDE) { Image(systemName: "chevron.left.forwardslash.chevron.right") }
+                .help("Open in default IDE")
+                .disabled(row.status.isMissing)
+                .accessibilityLabel("Open repository in the default IDE")
             Button(action: onFinder) { Image(systemName: "folder") }
                 .help("Open in Finder")
                 .disabled(row.status.isMissing)
