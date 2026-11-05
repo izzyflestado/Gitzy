@@ -12,8 +12,6 @@ final class AppSettings {
     private static let builtInTerminalID = "com.apple.Terminal"
     private static let opacityKey = "widgetOpacity"
     private static let ideKey = "ideAppPath"
-    /// Used when no code editor has been chosen: the first of these that is installed.
-    private static let defaultIDEIDs = ["com.microsoft.VSCode", "com.apple.dt.Xcode"]
 
     /// Minutes between automatic GitHub refreshes. 0 means manual only.
     static let refreshOptions = [15, 30, 60, 0]
@@ -124,20 +122,18 @@ final class AppSettings {
         UserDefaults.standard.set(url?.path, forKey: Self.ideKey)
     }
 
-    /// The chosen code editor, or the first of VS Code and Xcode that is installed when none is chosen
-    /// (or the chosen app no longer exists). Nil when there is none.
-    var ideAppURL: URL? {
-        if let path = ideAppPath, FileManager.default.fileExists(atPath: path) {
-            return URL(fileURLWithPath: path)
+    /// The code editor for this project. A chosen editor always wins (while it is still installed).
+    /// With none chosen ("Automatic"), the project decides: Xcode for an Xcode project or Swift package,
+    /// otherwise VS Code, and whichever of the two is installed when only one is. Nil when there is neither.
+    func ideAppURL(forProjectAt projectPath: String) -> URL? {
+        if let chosen = ideAppPath, FileManager.default.fileExists(atPath: chosen) {
+            return URL(fileURLWithPath: chosen)
         }
-        for id in Self.defaultIDEIDs {
+        let folder = URL(fileURLWithPath: projectPath, isDirectory: true)
+        for id in IDETarget.automaticOrder(forFolder: folder) {
             if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) { return url }
         }
         return nil
-    }
-
-    var ideName: String {
-        ideAppURL?.deletingPathExtension().lastPathComponent ?? "none found"
     }
 
     // MARK: Private

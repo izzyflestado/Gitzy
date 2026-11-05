@@ -61,4 +61,51 @@ nonisolated struct IDETargetTests {
         let gone = URL(fileURLWithPath: "/definitely/not/here", isDirectory: true)
         #expect(IDETarget.target(forFolder: gone, isXcode: true) == gone)
     }
+
+    // MARK: Automatic choice
+
+    @Test func xcodeProjectsOpenInXcodeFirst() throws {
+        let temp = try TempFolder()
+        let repo = try temp.folder("repo")
+        try temp.folder("repo/App.xcodeproj")
+        #expect(IDETarget.isXcodeProject(repo))
+        #expect(IDETarget.automaticOrder(forFolder: repo) == [IDETarget.xcodeBundleID, IDETarget.vscodeBundleID])
+    }
+
+    @Test func aWorkspaceAloneCountsAsAnXcodeProject() throws {
+        let temp = try TempFolder()
+        let repo = try temp.folder("repo")
+        try temp.folder("repo/App.xcworkspace")
+        #expect(IDETarget.isXcodeProject(repo))
+    }
+
+    @Test func swiftPackagesOpenInXcodeFirst() throws {
+        let temp = try TempFolder()
+        let repo = try temp.folder("repo")
+        try temp.write("// swift-tools-version: 6.0\n", to: "repo/Package.swift")
+        #expect(IDETarget.automaticOrder(forFolder: repo) == [IDETarget.xcodeBundleID, IDETarget.vscodeBundleID])
+    }
+
+    @Test func everythingElseOpensInVSCodeFirst() throws {
+        let temp = try TempFolder()
+        let repo = try temp.folder("repo")
+        try temp.write("{}\n", to: "repo/package.json")
+        try temp.write("print('hi')\n", to: "repo/main.py")
+        #expect(!IDETarget.isXcodeProject(repo))
+        #expect(IDETarget.automaticOrder(forFolder: repo) == [IDETarget.vscodeBundleID, IDETarget.xcodeBundleID])
+    }
+
+    @Test func anXcodeProjectDeeperDownDoesNotMakeItAnXcodeProject() throws {
+        let temp = try TempFolder()
+        let repo = try temp.folder("repo")
+        try temp.folder("repo/Pods/Pods.xcodeproj")
+        try temp.write("{}\n", to: "repo/package.json")
+        #expect(!IDETarget.isXcodeProject(repo))
+    }
+
+    @Test func aMissingFolderIsNotAnXcodeProject() {
+        let gone = URL(fileURLWithPath: "/definitely/not/here", isDirectory: true)
+        #expect(!IDETarget.isXcodeProject(gone))
+        #expect(IDETarget.automaticOrder(forFolder: gone).first == IDETarget.vscodeBundleID)
+    }
 }
