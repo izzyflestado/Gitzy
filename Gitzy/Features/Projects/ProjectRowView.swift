@@ -13,7 +13,7 @@ struct ProjectRowView: View {
         HStack(spacing: 8) {
             Button(action: onGitHub) {
                 Image(systemName: "arrow.up.right.square")
-                    .font(.system(size: 20))
+                    .font(.system(size: 16))
                     .frame(width: 32, height: 32)
             }
                 .help(githubHelp)
