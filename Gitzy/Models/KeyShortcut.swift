@@ -63,8 +63,8 @@ nonisolated enum ShortcutAction: String, CaseIterable, Codable, Identifiable, Se
     var defaultShortcut: KeyShortcut {
         let modifiers = KeyShortcut.option | KeyShortcut.shift
         switch self {
-        case .openInFinder: return KeyShortcut(keyCode: 0x21, modifiers: modifiers)     // [
-        case .openInTerminal: return KeyShortcut(keyCode: 0x1E, modifiers: modifiers)   // ]
+        case .openInFinder: return KeyShortcut(keyCode: 0x1E, modifiers: modifiers)     // ]
+        case .openInTerminal: return KeyShortcut(keyCode: 0x21, modifiers: modifiers)   // [
         case .openInIDE: return KeyShortcut(keyCode: 0x2A, modifiers: modifiers)        // \
         }
     }

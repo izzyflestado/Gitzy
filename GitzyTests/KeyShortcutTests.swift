@@ -7,8 +7,8 @@ nonisolated struct KeyShortcutTests {
     // MARK: The defaults
 
     @Test func defaultKeysAreOptionShiftBracketBracketBackslash() {
-        #expect(ShortcutAction.openInFinder.defaultShortcut.display == "⌥⇧[")
-        #expect(ShortcutAction.openInTerminal.defaultShortcut.display == "⌥⇧]")
+        #expect(ShortcutAction.openInFinder.defaultShortcut.display == "⌥⇧]")
+        #expect(ShortcutAction.openInTerminal.defaultShortcut.display == "⌥⇧[")
         #expect(ShortcutAction.openInIDE.defaultShortcut.display == "⌥⇧\\")
     }
 
