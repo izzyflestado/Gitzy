@@ -6,6 +6,14 @@ import SwiftUI
 struct ProjectsTestView: View {
     let store: ProjectStore
 
+    /// The room to the left of the list that the row numbers hang in: the popover's own 16 pt side padding,
+    /// which the list is widened into. Rows and underlines start exactly where they always did.
+    private static let numberGutter: CGFloat = 16
+
+    /// How far the (bigger) number reaches into the row, past the margin. The row's content starts this much
+    /// further right to make room; the underline does not move.
+    private static let numberOverhang: CGFloat = 8
+
     /// Every press of Refresh adds one full turn, which is what makes the icon spin once.
     @State private var refreshTurns = 0
 
@@ -57,17 +65,27 @@ struct ProjectsTestView: View {
     private var list: some View {
         List {
             ForEach(Array(store.rows.enumerated()), id: \.element.id) { index, row in
-                VStack(spacing: 0) {
-                    ProjectRowView(
-                        number: index + 1,
-                        row: row,
-                        onFinder: { store.openInFinder(row.project) },
-                        onTerminal: { store.openInTerminal(row.project) },
-                        onGitHub: { store.openOnGitHub(row) },
-                        onIDE: { store.openInIDE(row.project) },
-                        onRemove: { store.remove(row.project) }
-                    )
-                    Divider()
+                HStack(alignment: .top, spacing: 0) {
+                    // The number hangs in the popover's side margin, to the left of the row and its underline.
+                    Text("\(index + 1)")
+                        .font(.system(size: 16, weight: .medium).monospacedDigit())
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .frame(width: Self.numberGutter + Self.numberOverhang, height: 40)   // 40 = the height of a row
+                        .padding(.trailing, -Self.numberOverhang)   // reaches into the row; the row's place and the underline do not change
+                    VStack(spacing: 0) {
+                        ProjectRowView(
+                            row: row,
+                            onFinder: { store.openInFinder(row.project) },
+                            onTerminal: { store.openInTerminal(row.project) },
+                            onGitHub: { store.openOnGitHub(row) },
+                            onIDE: { store.openInIDE(row.project) },
+                            onRemove: { store.remove(row.project) }
+                        )
+                        .padding(.leading, Self.numberOverhang)
+                        Divider()
+                    }
                 }
                 // The scroll bar floats over the right edge, so keep the buttons clear of it.
                 .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
@@ -78,11 +96,13 @@ struct ProjectsTestView: View {
         }
         .listStyle(.inset)
         .scrollContentBackground(.hidden)
+        // Widened into the popover's side margin, so the row numbers can hang there, left of the underlines.
+        .padding(.leading, -Self.numberGutter)
         .frame(maxHeight: .infinity)
         .overlay {
-            if store.rows.isEmpty { emptyState }
+            if store.rows.isEmpty { emptyState.padding(.leading, Self.numberGutter) }
         }
-        .overlay(alignment: .bottom) { problemLine }
+        .overlay(alignment: .bottom) { problemLine.padding(.leading, Self.numberGutter) }
         .transaction { $0.animation = nil }
     }
 
