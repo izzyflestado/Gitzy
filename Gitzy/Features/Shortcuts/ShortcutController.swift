@@ -17,6 +17,9 @@ final class ShortcutController {
     private(set) var shortcuts: [ShortcutAction: KeyShortcut] = ShortcutBindings.defaults
     /// Shortcuts the system would not register (the keys already belong to another app), with the reason.
     private(set) var problems: [ShortcutAction: String] = [:]
+    /// True while the Settings window is listening for new keys. The global shortcuts are switched off for that time,
+    /// so typing the keys of an existing shortcut is read as typing, not as that shortcut firing.
+    private(set) var isRecording = false
 
     private let projects: ProjectStore
     private let hotKeys = GlobalHotKeys.shared
@@ -66,18 +69,39 @@ final class ShortcutController {
         registerAll()
     }
 
-    /// Gives one action new keys. Keys without ⌘, ⌥ or ⌃ are refused.
-    func setShortcut(_ shortcut: KeyShortcut, for action: ShortcutAction) {
-        guard shortcut.isAllowed else { return }
+    /// Gives one action new keys. Returns nil when it was saved, or the reason it was refused.
+    ///
+    /// Refused: keys without ⌘, ⌥ or ⌃ (they would fire while typing), and keys another of Gitzy's own shortcuts uses.
+    @discardableResult
+    func setShortcut(_ shortcut: KeyShortcut, for action: ShortcutAction) -> String? {
+        guard shortcut.isAllowed else {
+            return "Use at least one of ⌘, ⌥ or ⌃ with the key."
+        }
+        if let other = ShortcutAction.allCases.first(where: { $0 != action && self.shortcut(for: $0) == shortcut }) {
+            return "\(shortcut.display) is already used by \"\(other.title)\"."
+        }
         shortcuts[action] = shortcut
         saveShortcuts()
         registerAll()
+        return nil
     }
 
+    /// Puts every shortcut back to its default.
     func resetShortcuts() {
         shortcuts = ShortcutBindings.defaults
         saveShortcuts()
         registerAll()
+    }
+
+    /// The Settings window calls this with true when it starts listening for keys, and false when it stops.
+    func setRecording(_ on: Bool) {
+        guard isRecording != on else { return }
+        isRecording = on
+        if on {
+            hotKeys.unregisterAll()
+        } else {
+            registerAll()
+        }
     }
 
     // MARK: Registering
@@ -86,7 +110,7 @@ final class ShortcutController {
     private func registerAll() {
         hotKeys.unregisterAll()
         problems = [:]
-        guard isEnabled else { return }
+        guard isEnabled, !isRecording else { return }
 
         for action in ShortcutAction.allCases {
             let result = hotKeys.register(shortcut(for: action)) { [weak self] in
@@ -103,8 +127,15 @@ final class ShortcutController {
         }
     }
 
+    /// Only the shortcuts that differ from the default are saved, so an action nobody changed keeps following the
+    /// default, and Restore Defaults leaves nothing behind.
     private func saveShortcuts() {
-        UserDefaults.standard.set(ShortcutBindings.encode(shortcuts), forKey: Self.bindingsKey)
+        let changed = shortcuts.filter { $0.value != $0.key.defaultShortcut }
+        if changed.isEmpty {
+            UserDefaults.standard.removeObject(forKey: Self.bindingsKey)
+        } else {
+            UserDefaults.standard.set(ShortcutBindings.encode(changed), forKey: Self.bindingsKey)
+        }
     }
 
     // MARK: Carrying out
