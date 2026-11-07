@@ -37,7 +37,8 @@ final class MenuBarController: NSObject {
         popover.behavior = .transient
     }
 
-    @objc private func togglePopover() {
+    /// Opens the popover, or closes it when it is open. The menu bar icon and the "Open Gitzy menu" shortcut both call this.
+    @objc func togglePopover() {
         guard let button = statusItem.button else { return }
         if popover.isShown {
             popover.performClose(nil)

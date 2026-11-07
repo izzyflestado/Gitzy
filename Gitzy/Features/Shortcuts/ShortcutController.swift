@@ -29,6 +29,8 @@ final class ShortcutController {
     /// The saved project the last successful question found.
     @ObservationIgnored private var lastProjectPath: String?
     @ObservationIgnored private var observer: NSObjectProtocol?
+    /// Opens (or closes) Gitzy's own menu bar window. The app sets it once that window exists.
+    @ObservationIgnored var openMenu: (() -> Void)?
 
     private static let enabledKey = "shortcutsEnabled"
     private static let bindingsKey = "shortcutBindings"
@@ -141,6 +143,11 @@ final class ShortcutController {
     // MARK: Carrying out
 
     private func perform(_ action: ShortcutAction) {
+        // Opening Gitzy's own window needs no repository, so no editor is asked anything.
+        if action == .openMenu {
+            openMenu?()
+            return
+        }
         Task {
             // Nothing to open (no editor in front, or a project that is not saved): a beep, because Gitzy has no window to say it in.
             guard let path = await activeProjectPath() else {
@@ -152,6 +159,7 @@ final class ShortcutController {
             case .openInFinder: projects.openInFinder(project)
             case .openInTerminal: projects.openInTerminal(project)
             case .openInIDE: projects.openInIDE(project)
+            case .openMenu: break   // handled above
             }
         }
     }
