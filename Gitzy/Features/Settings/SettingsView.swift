@@ -16,6 +16,7 @@ struct SettingsView: View {
         Form {
             GitHubSettingsSection(store: contributions, settings: settings)
             IDESettingsSection(settings: settings)
+            WindowsSettingsSection(settings: settings)
             ShortcutsSettingsSection(controller: shortcuts)
             // Coming next: Projects (terminal app, code editor, default sort, forget all), General, Widget, About.
         }

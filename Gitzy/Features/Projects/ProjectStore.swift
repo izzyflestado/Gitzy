@@ -180,19 +180,36 @@ final class ProjectStore {
 
     /// Opens the project folder itself in Finder, so its contents are showing.
     func openInFinder(_ project: GitProject) {
-        NSWorkspace.shared.open(URL(fileURLWithPath: project.path, isDirectory: true))
+        let folder = URL(fileURLWithPath: project.path, isDirectory: true)
+        // A new window, or the window that is already open, as chosen in Settings. If Finder cannot be asked
+        // (macOS has not allowed it), the folder is opened the usual way.
+        let mode = WindowMode.saved(forKey: WindowMode.finderKey)
+        guard case .openNormally(let reason) = FinderWindows.open(folder, mode: mode) else { return }
+        NSWorkspace.shared.open(folder)
+        if let reason { show(reason) }
     }
 
-    /// Hands the folder to the chosen terminal app. No AppleScript, so no extra permission.
+    /// Hands the folder to the chosen terminal app, which opens a new window. With "Show the existing window" chosen
+    /// in Settings, Apple's Terminal is first asked for a window that is already working in the folder.
     func openInTerminal(_ project: GitProject) {
         problem = nil
         guard let app = settings.terminalAppURL else {
             show("No terminal app found.")
             return
         }
+        let folder = URL(fileURLWithPath: project.path, isDirectory: true)
+        let mode = WindowMode.saved(forKey: WindowMode.terminalKey)
         Task {
+            // "Show the existing window" is only possible for Apple's Terminal, the one app Gitzy can ask about its windows.
+            if mode == .existingWindow, TerminalWindows.isAppleTerminal(app) {
+                switch await TerminalWindows.showWindow(workingIn: folder) {
+                case .done:
+                    return
+                case .openNormally(let reason):
+                    if let reason { show(reason) }
+                }
+            }
             do {
-                let folder = URL(fileURLWithPath: project.path, isDirectory: true)
                 _ = try await NSWorkspace.shared.open([folder], withApplicationAt: app, configuration: NSWorkspace.OpenConfiguration())
             } catch {
                 show("Could not open \(app.deletingPathExtension().lastPathComponent): \(error.localizedDescription)")
