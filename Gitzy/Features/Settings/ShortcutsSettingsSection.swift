@@ -40,8 +40,6 @@ struct ShortcutsSettingsSection: View {
                     note(problem, isProblem: true)
                 }
             }
-
-            note("Click a key combination to change it. They work in every app, even when Gitzy is not in front. The first three act on the repository open in Xcode or VS Code (the one the branch widget shows), which has to be saved in Gitzy. “Open Gitzy menu” opens Gitzy's menu bar window, and closes it again when it is open. While they are on, no other app receives these keys.", isProblem: false)
         } header: {
             HStack {
                 Text("Keyboard shortcuts")

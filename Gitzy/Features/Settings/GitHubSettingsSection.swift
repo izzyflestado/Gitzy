@@ -2,44 +2,72 @@ import SwiftUI
 
 /// The GitHub part of Settings: the account and token, then how and when the contributions are refreshed.
 /// It returns two Form sections, so it is meant to sit directly inside the Settings Form.
+///
+/// Contributions is two rows: Automatic refresh, and Last updated. The Refresh icon sits in the section header, and is
+/// the same spinning icon as the other Refresh buttons.
 struct GitHubSettingsSection: View {
     let store: ContributionStore
     let settings: AppSettings
+
+    /// Every press of Refresh adds one full turn, which is what makes the icon spin once.
+    @State private var refreshTurns = 0
 
     var body: some View {
         Section("GitHub account") {
             GitHubTokenSection(store: store)
         }
 
-        Section("Contributions") {
-            Picker("Automatic refresh", selection: intervalSelection) {
-                ForEach(AppSettings.refreshOptions, id: \.self) { minutes in
-                    Text(AppSettings.intervalLabel(minutes)).tag(minutes)
+        Section {
+            LabeledContent("Automatic refresh") {
+                Picker("Automatic refresh", selection: intervalSelection) {
+                    ForEach(AppSettings.refreshOptions, id: \.self) { minutes in
+                        Text(AppSettings.intervalLabel(minutes)).tag(minutes)
+                    }
                 }
+                .labelsHidden()
+                .fixedSize()
             }
 
             // Only worth saying while an automatic refresh is actually due.
             if store.pausedForLowPower && settings.refreshIntervalMinutes > 0 {
-                note("Automatic refresh is paused in Low Power Mode. Use Refresh now to update.", isProblem: false)
+                note("Automatic refresh is paused in Low Power Mode. Use the refresh icon to update.", isProblem: false)
             }
 
             LabeledContent("Last updated") {
-                HStack(spacing: 10) {
-                    Text(lastUpdatedText)
-                        .foregroundStyle(.secondary)
-                    Button("Refresh now") { store.refresh() }
-                        .controlSize(.small)
-                        .disabled(!store.isConnected || store.isLoading)
-                }
+                Text(lastUpdatedText)
+                    .foregroundStyle(.secondary)
             }
 
             if let problem = refreshProblem {
                 note(problem, isProblem: true)
             }
+        } header: {
+            HStack {
+                Text("Contributions")
+                Spacer()
+                refreshButton
+            }
         }
     }
 
     // MARK: Pieces
+
+    private var refreshButton: some View {
+        Button {
+            refreshTurns += 1
+            store.refresh()
+        } label: {
+            Image(systemName: "arrow.clockwise")
+                .rotationEffect(.degrees(Double(refreshTurns) * 360))
+                .animation(.linear(duration: 1), value: refreshTurns)
+                .font(.system(size: 12, weight: .medium))
+                .frame(width: 18, height: 18)
+        }
+        .buttonStyle(.borderless)
+        .disabled(!store.isConnected || store.isLoading)
+        .help("Refresh contributions")
+        .accessibilityLabel("Refresh contributions")
+    }
 
     /// The picker changes the setting through the store, so the refresh timer is restarted with it.
     private var intervalSelection: Binding<Int> {

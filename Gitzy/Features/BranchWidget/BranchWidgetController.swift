@@ -6,7 +6,8 @@ import SwiftUI
 /// Which project: when Xcode or VS Code comes to the front, ask it which project is open and match the answer
 /// against the saved projects. Only saved projects are ever shown.
 /// Which branch: read from the project's HEAD file, and kept current by watching the Git directory.
-/// Nothing here polls, and no timer is involved.
+/// Nothing here polls, with one exception: the optional app rules (AppVisibilityMonitor, "Widget by app" in Settings)
+/// read the list of on-screen windows twice a second, and only while they are switched on and have at least one app.
 @Observable
 final class BranchWidgetController {
     private(set) var isVisible = false
@@ -37,6 +38,10 @@ final class BranchWidgetController {
     @ObservationIgnored private var activeProjectPath: String?
     @ObservationIgnored private var watcher: GitHeadWatcher?
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
+    /// The app rules (Settings, "Widget by app"). They can only hide a widget that the person has switched on.
+    let appVisibility = AppVisibilityMonitor()
+    /// Whether the panel is in front right now. The person's switch (`isVisible`) and the app rules both have a say.
+    @ObservationIgnored private var panelIsShowing = false
 
     init(settings: AppSettings, projects: ProjectStore) {
         self.settings = settings
@@ -49,6 +54,8 @@ final class BranchWidgetController {
         // When the saved project list changes (added, removed, loaded at launch), match again.
         projects.onProjectsChanged = { [weak self] in self?.matchLastDetection() }
         startObserving()
+        // Whenever the app rules change their mind, the panel is shown or taken away.
+        appVisibility.attach { [weak self] in self?.applyVisibility() }
     }
 
     // MARK: Showing and placing
@@ -56,6 +63,21 @@ final class BranchWidgetController {
     func setVisible(_ visible: Bool) {
         isVisible = visible
         guard visible else {
+            panel.orderOut(nil)
+            panelIsShowing = false
+            return
+        }
+        panelIsShowing = false   // so the panel is put in front again, if the app rules allow it
+        applyVisibility()
+    }
+
+    /// Puts the panel in front or takes it away. It shows only when the person's switch is on AND the app rules
+    /// ("Widget by app") allow it, so the rules can hide a widget but never show one that is switched off.
+    private func applyVisibility() {
+        let shouldShow = isVisible && appVisibility.allowsWidget
+        guard shouldShow != panelIsShowing else { return }
+        panelIsShowing = shouldShow
+        guard shouldShow else {
             panel.orderOut(nil)
             return
         }

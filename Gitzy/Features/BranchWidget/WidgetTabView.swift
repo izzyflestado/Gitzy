@@ -15,6 +15,7 @@ struct WidgetTabView: View {
             VStack(spacing: 14) {
                 visibilityButton
                     .transaction { $0.animation = nil }
+                hiddenByRulesNote
                 positionRow
                     .transaction { $0.animation = nil }
                 Divider()
@@ -39,6 +40,17 @@ struct WidgetTabView: View {
         .tint(widget.isVisible ? Color.accentColor : Color.gray)
         .controlSize(.large)
         .frame(maxWidth: .infinity)
+    }
+
+    /// Shown only while the app rules ("Widget by app" in Settings) are keeping a widget that is switched on out of sight.
+    @ViewBuilder
+    private var hiddenByRulesNote: some View {
+        if widget.isVisible && !widget.appVisibility.allowsWidget {
+            Text("Hidden for now by “Widget by app” in Settings.")
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
+        }
     }
 
     // MARK: Position

@@ -2,31 +2,45 @@ import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Which code editor "Open in default IDE" uses.
+/// Which code editor "Open in default IDE" uses, in two rows.
 ///
-/// Automatic (the default) lets the project decide: Xcode for Xcode projects and Swift packages, VS Code for
-/// everything else. Choosing an app here makes every project open in that app instead.
+/// Row 1: Automatic, blue while it is in use. Automatic lets the project decide: Xcode for Xcode projects and Swift
+/// packages, VS Code for everything else.
+/// Row 2: a chosen app, shown with its icon and name; hovering it says Choose. Choosing an app makes every project open
+/// in that app instead. If the chosen app has since been moved or deleted, Automatic is used and shows blue.
 struct IDESettingsSection: View {
     let settings: AppSettings
+
+    @State private var hoveringChoice = false
 
     var body: some View {
         Section("Default IDE") {
             LabeledContent("Open in default IDE") {
-                HStack(spacing: 8) {
-                    Text(shownName)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                    Button("Choose…", action: choose)
-                    Button("Automatic") { settings.setIDEApp(nil) }
-                        .disabled(settings.ideAppPath == nil)
-                }
-                .controlSize(.small)
+                Button("Automatic") { settings.setIDEApp(nil) }
+                    .buttonStyle(.borderedProminent)
+                    .tint(chosenURL == nil ? Color.accentColor : Color.gray)
+                    .controlSize(.small)
             }
 
-            Text(explanation)
-                .font(.system(size: 11))
-                .foregroundStyle(chosenIsMissing ? Color.orange : Color.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+            LabeledContent("Specific app") {
+                Button(action: choose) {
+                    HStack(spacing: 6) {
+                        if let url = chosenURL, !hoveringChoice {
+                            Image(nsImage: NSWorkspace.shared.icon(forFile: url.path))
+                                .resizable()
+                                .frame(width: 16, height: 16)
+                            Text(url.deletingPathExtension().lastPathComponent)
+                                .lineLimit(1)
+                        } else {
+                            Text("Choose…")
+                        }
+                    }
+                    .frame(minWidth: 110)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .onHover { hoveringChoice = $0 }
+            }
         }
     }
 
@@ -36,25 +50,6 @@ struct IDESettingsSection: View {
     private var chosenURL: URL? {
         guard let path = settings.ideAppPath, FileManager.default.fileExists(atPath: path) else { return nil }
         return URL(fileURLWithPath: path)
-    }
-
-    /// Something was chosen, but the app has since been moved or deleted.
-    private var chosenIsMissing: Bool {
-        settings.ideAppPath != nil && chosenURL == nil
-    }
-
-    private var shownName: String {
-        chosenURL.map { $0.deletingPathExtension().lastPathComponent } ?? "Automatic"
-    }
-
-    private var explanation: String {
-        if chosenIsMissing {
-            return "The app you chose is no longer there, so Automatic is being used. Choose another one."
-        }
-        if let url = chosenURL {
-            return "Every project opens in \(url.deletingPathExtension().lastPathComponent), whatever kind of project it is."
-        }
-        return "Automatic opens Xcode for Xcode projects and Swift packages, and VS Code for everything else (Xcode when VS Code is not installed)."
     }
 
     // MARK: Choosing

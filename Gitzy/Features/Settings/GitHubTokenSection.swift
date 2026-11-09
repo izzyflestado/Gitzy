@@ -35,8 +35,6 @@ struct GitHubTokenSection: View {
             if showsField {
                 note(Self.help, isProblem: false)
             }
-            note("Saved on this Mac in a private file: \(Self.tokenLocation). Other user accounts on this Mac cannot read it.", isProblem: false)
-                .textSelection(.enabled)
         }
         .padding(.vertical, 4)
     }
@@ -49,10 +47,6 @@ struct GitHubTokenSection: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Connected as @\(store.login ?? "")")
                     .font(.system(size: 13, weight: .medium))
-                    .lineLimit(1)
-                Text("Token saved on this Mac")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
             Spacer(minLength: 8)
