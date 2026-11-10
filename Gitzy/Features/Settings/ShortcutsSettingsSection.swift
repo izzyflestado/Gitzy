@@ -66,8 +66,8 @@ struct ShortcutsSettingsSection: View {
     private func keyCap(for action: ShortcutAction) -> some View {
         let isRecording = recording == action
         let text = isRecording
-            ? (pending?.display ?? "Type shortcut…")
-            : controller.shortcut(for: action).display
+            ? (pending.map { action.display($0) } ?? "Type shortcut…")
+            : action.display(controller.shortcut(for: action))
 
         return Button {
             if isRecording {
@@ -174,7 +174,7 @@ struct ShortcutsSettingsSection: View {
 
         // Anything else is the new combination. It is checked when Return is pressed, but a combination that can
         // never be used is said so straight away.
-        let typed = KeyShortcut(keyCode: UInt32(code), modifiers: modifiers)
+        let typed = action.normalized(KeyShortcut(keyCode: UInt32(code), modifiers: modifiers))
         pending = typed
         message = typed.isAllowed ? nil : "Use at least one of ⌘, ⌥ or ⌃ with the key."
     }

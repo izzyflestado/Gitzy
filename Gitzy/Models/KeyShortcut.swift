@@ -58,12 +58,15 @@ nonisolated struct KeyShortcut: Codable, Hashable, Sendable {
     ]
 }
 
-/// The things a shortcut can do. The first three act on the repository that is open in the editor in front;
+/// The things a shortcut can do. Finder, Terminal, IDE and GitHub act on the repository that is open in the editor
+/// in front. "Open project 1, 2 or 3" opens the project at that place in the Projects list on GitHub.
 /// "Open Gitzy menu" opens Gitzy's own menu bar window.
 nonisolated enum ShortcutAction: String, CaseIterable, Codable, Identifiable, Sendable {
     case openInFinder
     case openInTerminal
     case openInIDE
+    case openOnGitHub
+    case openProjectByNumber
     case openMenu
 
     var id: String { rawValue }
@@ -73,6 +76,8 @@ nonisolated enum ShortcutAction: String, CaseIterable, Codable, Identifiable, Se
         case .openInFinder: return "Open in Finder"
         case .openInTerminal: return "Open in Terminal"
         case .openInIDE: return "Open in default IDE"
+        case .openOnGitHub: return "Open project on GitHub"
+        case .openProjectByNumber: return "Open project 1, 2 or 3 on GitHub"
         case .openMenu: return "Open Gitzy menu"
         }
     }
@@ -84,6 +89,8 @@ nonisolated enum ShortcutAction: String, CaseIterable, Codable, Identifiable, Se
         case .openInFinder: return KeyShortcut(keyCode: 0x1E, modifiers: modifiers)     // ]
         case .openInTerminal: return KeyShortcut(keyCode: 0x21, modifiers: modifiers)   // [
         case .openInIDE: return KeyShortcut(keyCode: 0x2A, modifiers: modifiers)        // \
+        case .openOnGitHub: return KeyShortcut(keyCode: 0x32, modifiers: modifiers)          // `
+        case .openProjectByNumber: return KeyShortcut(keyCode: 0x12, modifiers: modifiers)   // 1 (2 and 3 follow)
         case .openMenu: return KeyShortcut(keyCode: 0x24, modifiers: modifiers)   // Return
         }
     }
@@ -104,7 +111,7 @@ nonisolated enum ShortcutBindings {
         }
         for action in ShortcutAction.allCases {
             if let shortcut = saved[action.rawValue], shortcut.isAllowed {
-                result[action] = shortcut
+                result[action] = action.normalized(shortcut)
             }
         }
         return result

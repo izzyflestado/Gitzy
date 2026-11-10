@@ -75,12 +75,16 @@ final class ShortcutController {
     ///
     /// Refused: keys without ⌘, ⌥ or ⌃ (they would fire while typing), and keys another of Gitzy's own shortcuts uses.
     @discardableResult
-    func setShortcut(_ shortcut: KeyShortcut, for action: ShortcutAction) -> String? {
+    func setShortcut(_ typed: KeyShortcut, for action: ShortcutAction) -> String? {
+        let shortcut = action.normalized(typed)
         guard shortcut.isAllowed else {
             return "Use at least one of ⌘, ⌥ or ⌃ with the key."
         }
-        if let other = ShortcutAction.allCases.first(where: { $0 != action && self.shortcut(for: $0) == shortcut }) {
-            return "\(shortcut.display) is already used by \"\(other.title)\"."
+        let mine = Set(action.keys(for: shortcut))
+        if let other = ShortcutAction.allCases.first(where: { candidate in
+            candidate != action && !mine.isDisjoint(with: candidate.keys(for: self.shortcut(for: candidate)))
+        }) {
+            return "\(action.display(shortcut)) is already used by \"\(other.title)\"."
         }
         shortcuts[action] = shortcut
         saveShortcuts()
@@ -115,16 +119,19 @@ final class ShortcutController {
         guard isEnabled, !isRecording else { return }
 
         for action in ShortcutAction.allCases {
-            let result = hotKeys.register(shortcut(for: action)) { [weak self] in
-                self?.perform(action)
-            }
-            switch result {
-            case .registered:
-                break
-            case .alreadyTaken:
-                problems[action] = "These keys are already used by another app or by macOS."
-            case .failed(let code):
-                problems[action] = "macOS would not register these keys (error \(code))."
+            // Most actions are one key combination. "Open project 1, 2 or 3" is three, and `number` says which was pressed.
+            for (index, keys) in action.keys(for: shortcut(for: action)).enumerated() {
+                let result = hotKeys.register(keys) { [weak self] in
+                    self?.perform(action, number: index + 1)
+                }
+                switch result {
+                case .registered:
+                    break
+                case .alreadyTaken:
+                    problems[action] = "These keys are already used by another app or by macOS."
+                case .failed(let code):
+                    problems[action] = "macOS would not register these keys (error \(code))."
+                }
             }
         }
     }
@@ -142,10 +149,16 @@ final class ShortcutController {
 
     // MARK: Carrying out
 
-    private func perform(_ action: ShortcutAction) {
+    /// `number` says which of an action's keys was pressed, counted from 1. Only the numbered action has more than one.
+    private func perform(_ action: ShortcutAction, number: Int) {
         // Opening Gitzy's own window needs no repository, so no editor is asked anything.
         if action == .openMenu {
             openMenu?()
+            return
+        }
+        // The numbered action opens the project at a place in the list, so no editor is asked either.
+        if action == .openProjectByNumber {
+            openProject(atPosition: number)
             return
         }
         Task {
@@ -159,9 +172,30 @@ final class ShortcutController {
             case .openInFinder: projects.openInFinder(project)
             case .openInTerminal: projects.openInTerminal(project)
             case .openInIDE: projects.openInIDE(project)
-            case .openMenu: break   // handled above
+            case .openOnGitHub: openOnGitHub(path: path)
+            case .openMenu, .openProjectByNumber: break   // handled above
             }
         }
+    }
+
+    /// Opens the project the editor has open on GitHub. Beeps when it has no GitHub address.
+    private func openOnGitHub(path: String) {
+        guard let row = projects.rows.first(where: { $0.project.path == path }), row.status.githubURL != nil else {
+            NSSound.beep()
+            return
+        }
+        projects.openOnGitHub(row)
+    }
+
+    /// Opens the project at a place in the Projects list on GitHub, counted from 1 at the top. `rows` is already in
+    /// the list's current sort order, and no filter or search is applied to it. Beeps when nothing is in that
+    /// place (fewer projects than the number) or the project has no GitHub address.
+    private func openProject(atPosition number: Int) {
+        guard let row = ProjectPosition.item(at: number, in: projects.rows), row.status.githubURL != nil else {
+            NSSound.beep()
+            return
+        }
+        projects.openOnGitHub(row)
     }
 
     // MARK: Which repository
