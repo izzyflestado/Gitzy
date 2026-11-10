@@ -8,7 +8,7 @@ import UniformTypeIdentifiers
 /// not hidden with Cmd-H, and on the current Space.
 /// The widget's own Show Widget switch still has the last word: these rules can only hide a widget that is switched on.
 ///
-/// Rows: the switch (a tick), the threshold and its percentage, a full-width slider, what wins in a conflict, and the
+/// The heading is above the box, like the other sections. Rows: the Enabled switch (a tick), the threshold and its percentage, a full-width slider, what wins in a conflict, and the
 /// list of apps (folds away; the plus adds an app by picking it from Applications).
 struct WidgetAppRulesSection: View {
     let monitor: AppVisibilityMonitor
@@ -17,8 +17,8 @@ struct WidgetAppRulesSection: View {
 
     var body: some View {
         Section {
-            LabeledContent("App-Based Widget Visibility") {
-                Toggle("App-Based Widget Visibility", isOn: Binding(
+            LabeledContent("Enabled") {
+                Toggle("Enabled", isOn: Binding(
                     get: { monitor.isEnabled },
                     set: { monitor.setEnabled($0) }
                 ))
@@ -66,6 +66,8 @@ struct WidgetAppRulesSection: View {
                     }
                 }
             }
+        } header: {
+            Text("App-Based Widget Visibility")
         }
     }
 

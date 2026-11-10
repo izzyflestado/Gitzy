@@ -7,7 +7,7 @@ import UniformTypeIdentifiers
 /// inside it. SettingsView puts this view between two Forms (GitHub account above, the other sections below), all in one
 /// scrolling page.
 ///
-/// Each box is a title and two rows, so the rows line up across the two:
+/// Each has its heading above the box, outside it, like the Form's sections, and two rows inside, so the rows line up:
 ///
 ///     Contributions ⟳                      Default IDE
 ///     Automatic refresh   [ 30 min ]       [        Automatic        ]    (blue while it is in use)
@@ -39,14 +39,13 @@ struct ContributionsIDESection: View {
     // MARK: Contributions
 
     private var contributionsColumn: some View {
-        box {
+        titledBox {
             HStack(spacing: 6) {
                 title("Contributions")
                 refreshButton
                 Spacer()
             }
-            .frame(height: rowHeight)
-
+        } content: {
             HStack {
                 label("Automatic refresh")
                 Spacer()
@@ -125,10 +124,9 @@ struct ContributionsIDESection: View {
     // MARK: Default IDE
 
     private var ideColumn: some View {
-        box {
+        titledBox {
             title("Default IDE")
-                .frame(height: rowHeight)
-
+        } content: {
             Button { settings.setIDEApp(nil) } label: {
                 Text("Automatic")
                     .frame(maxWidth: .infinity)
@@ -152,7 +150,7 @@ struct ContributionsIDESection: View {
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .tint(chosenURL != nil ? Color.accentColor : Color.gray)
+            .tint(chosenURL != nil ? Color.accentColor : Color.gray)   // blue while a chosen app is in use, like Automatic
             .onHover { hoveringChoice = $0 }
             .frame(height: rowHeight)
         }
@@ -193,10 +191,24 @@ struct ContributionsIDESection: View {
         )
     }
 
-    /// The name of a box: bigger and stronger than the rows under it.
+    /// A box with its heading above it, outside the box, like the headings of the Form's sections.
+    private func titledBox<Header: View, Content: View>(
+        @ViewBuilder header: () -> Header,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            header()
+                .padding(.leading, 6)
+                .frame(height: 20)
+            box { content() }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    /// A heading. It is meant to be the size of the Form's section headings (Finder and Terminal, Keyboard shortcuts).
     private func title(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 15, weight: .semibold))
+            .font(.headline)
     }
 
     private func label(_ text: String) -> some View {
