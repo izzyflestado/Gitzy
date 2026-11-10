@@ -119,7 +119,7 @@ final class ShortcutController {
         guard isEnabled, !isRecording else { return }
 
         for action in ShortcutAction.allCases {
-            // Most actions are one key combination. "Open project 1, 2 or 3" is three, and `number` says which was pressed.
+            // Most actions are one key combination. "Open project 1 to 10" is ten, and `number` says which was pressed.
             for (index, keys) in action.keys(for: shortcut(for: action)).enumerated() {
                 let result = hotKeys.register(keys) { [weak self] in
                     self?.perform(action, number: index + 1)
