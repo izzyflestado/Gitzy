@@ -151,7 +151,8 @@ struct ContributionsIDESection: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(.borderedProminent)
+            .tint(chosenURL != nil ? Color.accentColor : Color.gray)
             .onHover { hoveringChoice = $0 }
             .frame(height: rowHeight)
         }
