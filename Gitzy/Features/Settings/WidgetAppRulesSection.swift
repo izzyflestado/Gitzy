@@ -43,26 +43,39 @@ struct WidgetAppRulesSection: View {
                     }
                 }
 
-                DisclosureGroup(isExpanded: $appsExpanded) {
+                // The Apps line: the name, then + (add an app) and the open/close arrow on the right.
+                HStack(spacing: 8) {
+                    Text("Apps")
+                    Spacer()
+                    Button(action: chooseApp) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 12, weight: .medium))
+                            .frame(width: 18, height: 18)
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Add an app")
+                    .accessibilityLabel("Add an app")
+
+                    Button {
+                        appsExpanded.toggle()
+                    } label: {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11, weight: .semibold))
+                            .rotationEffect(.degrees(appsExpanded ? 90 : 0))
+                            .frame(width: 18, height: 18)
+                    }
+                    .buttonStyle(.borderless)
+                    .help(appsExpanded ? "Hide the apps" : "Show the apps")
+                    .accessibilityLabel(appsExpanded ? "Hide the apps" : "Show the apps")
+                }
+
+                if appsExpanded {
                     if monitor.rules.isEmpty {
                         Text("No apps yet")
                             .foregroundStyle(.secondary)
                     }
                     ForEach(sortedAppIDs, id: \.self) { appID in
                         ruleRow(appID)
-                    }
-                } label: {
-                    HStack {
-                        Text("Apps")
-                        Spacer()
-                        Button(action: chooseApp) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 12, weight: .medium))
-                                .frame(width: 18, height: 18)
-                        }
-                        .buttonStyle(.borderless)
-                        .help("Add an app")
-                        .accessibilityLabel("Add an app")
                     }
                 }
             }
