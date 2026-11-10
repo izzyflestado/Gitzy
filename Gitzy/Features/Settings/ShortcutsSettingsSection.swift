@@ -92,7 +92,11 @@ struct ShortcutsSettingsSection: View {
                 )
         }
         .buttonStyle(.plain)
-        .help(isRecording ? "Press the new keys, then Return" : "Click, then press the new keys")
+        .disabled(!action.isEditable)
+        .opacity(action.isEditable ? 1 : 0.45)
+        .help(action.isEditable
+              ? (isRecording ? "Press the new keys, then Return" : "Click, then press the new keys")
+              : "These keys are fixed")
     }
 
     private func capColor(isRecording: Bool) -> Color {

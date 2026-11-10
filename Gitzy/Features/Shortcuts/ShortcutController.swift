@@ -76,6 +76,9 @@ final class ShortcutController {
     /// Refused: keys without ⌘, ⌥ or ⌃ (they would fire while typing), and keys another of Gitzy's own shortcuts uses.
     @discardableResult
     func setShortcut(_ typed: KeyShortcut, for action: ShortcutAction) -> String? {
+        guard action.isEditable else {
+            return "These keys can't be changed."
+        }
         let shortcut = action.normalized(typed)
         guard shortcut.isAllowed else {
             return "Use at least one of ⌘, ⌥ or ⌃ with the key."

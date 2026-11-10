@@ -78,11 +78,22 @@ struct ProjectShortcutTests {
         #expect(decoded.count == ShortcutAction.allCases.count)
     }
 
-    @Test func savedNumberedShortcutAlwaysEndsOnKeyOne() throws {
-        let modifiers = KeyShortcut.control | KeyShortcut.option
-        let saved = ["openProjectByNumber": KeyShortcut(keyCode: 0x0C, modifiers: modifiers)]
+    @Test func aSavedNumberedShortcutIsIgnored() throws {
+        let kept = KeyShortcut(keyCode: 0x00, modifiers: optionShift)
+        let saved = [
+            "openProjectByNumber": KeyShortcut(keyCode: 0x0C, modifiers: KeyShortcut.control | KeyShortcut.option),
+            "openInFinder": kept,
+        ]
         let decoded = ShortcutBindings.decode(try JSONEncoder().encode(saved))
-        #expect(decoded[.openProjectByNumber] == KeyShortcut(keyCode: 0x12, modifiers: modifiers))
+        #expect(decoded[.openProjectByNumber] == ShortcutAction.openProjectByNumber.defaultShortcut)
+        // Saved shortcuts of the other actions are still kept.
+        #expect(decoded[.openInFinder] == kept)
+    }
+
+    @Test func onlyTheNumberedActionIsFixed() {
+        for action in ShortcutAction.allCases {
+            #expect(action.isEditable == (action != .openProjectByNumber))
+        }
     }
 
     // MARK: Place in the list

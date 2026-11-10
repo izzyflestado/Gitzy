@@ -110,7 +110,7 @@ nonisolated enum ShortcutBindings {
             return result
         }
         for action in ShortcutAction.allCases {
-            if let shortcut = saved[action.rawValue], shortcut.isAllowed {
+            if action.isEditable, let shortcut = saved[action.rawValue], shortcut.isAllowed {
                 result[action] = action.normalized(shortcut)
             }
         }

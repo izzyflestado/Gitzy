@@ -1,8 +1,14 @@
 import Foundation
 
 /// How an action turns into actual key combinations. Most actions are one combination. "Open project 1 to 10"
-/// is one setting (the modifier keys) that covers the ten number keys: 1 to 9, then 0 for the tenth project.
+/// is fixed to ⌥⇧ and covers the ten number keys: 1 to 9, then 0 for the tenth project.
 nonisolated extension ShortcutAction {
+
+    /// Whether the person can record new keys for this action. The numbered action is fixed: Settings shows it
+    /// greyed out, and a saved value for it is ignored.
+    var isEditable: Bool {
+        self != .openProjectByNumber
+    }
 
     /// The number keys in the order of the projects they open: 1 to 9, then 0 for project 10.
     /// The key codes are not in order on a Mac keyboard (5 and 6 are swapped, and 7, 8, 9, 0 are scattered).
@@ -19,7 +25,7 @@ nonisolated extension ShortcutAction {
         }
     }
 
-    /// The numbered action keeps only the modifier keys that were typed: its keys are always 1 to 9 and 0.
+    /// The numbered action always starts on key 1: its keys are always 1 to 9 and 0.
     func normalized(_ shortcut: KeyShortcut) -> KeyShortcut {
         switch self {
         case .openProjectByNumber:
