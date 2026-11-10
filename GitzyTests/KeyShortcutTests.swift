@@ -34,7 +34,16 @@ nonisolated struct KeyShortcutTests {
     }
 
     @Test func unknownKeysShowTheirNumber() {
-        #expect(KeyShortcut(keyCode: 0x7A, modifiers: KeyShortcut.command).display == "⌘Key 122")
+        #expect(KeyShortcut(keyCode: 0x7F, modifiers: KeyShortcut.command).display == "⌘Key 127")
+    }
+
+    @Test func commonKeysHaveNames() {
+        let option = KeyShortcut.option
+        #expect(KeyShortcut(keyCode: 0x33, modifiers: option).display == "⌥⌫")
+        #expect(KeyShortcut(keyCode: 0x7B, modifiers: option).display == "⌥←")
+        #expect(KeyShortcut(keyCode: 0x7E, modifiers: option).display == "⌥↑")
+        #expect(KeyShortcut(keyCode: 0x7A, modifiers: option).display == "⌥F1")
+    }
     }
 
     // MARK: What is allowed
