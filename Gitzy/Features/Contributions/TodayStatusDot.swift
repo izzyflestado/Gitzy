@@ -63,21 +63,10 @@ struct TodayStatusDot: View {
                     .font(.system(size: 12, weight: .semibold))
             }
 
-            Text(today.headline)
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-
             Divider()
 
             row("GitHub graph", today.graphText)
             row("This Mac", today.localText)
-
-            if let checked = checkedText {
-                Text(checked)
-                    .font(.system(size: 10))
-                    .foregroundStyle(.tertiary)
-            }
         }
         .padding(10)
         .frame(width: 236, alignment: .leading)
@@ -99,11 +88,5 @@ struct TodayStatusDot: View {
             Text(value)
                 .font(.system(size: 11, weight: .medium))
         }
-    }
-
-    /// When the graph was last read, so an orange dot that is only waiting for a refresh is understood.
-    private var checkedText: String? {
-        guard let fetched = store.snapshot?.fetchedAt else { return nil }
-        return "Graph read at \(fetched.formatted(date: .omitted, time: .shortened))"
     }
 }
