@@ -1,5 +1,5 @@
 Notes: 
 
 ## To add/fix:
-2. Add recent activity on github profile
-
+1. Add recent activity on github profile
+2. Add visualizer if contributed today or not yet
