@@ -28,6 +28,9 @@ final class ContributionStore {
 
     var isConnected: Bool { login != nil }
 
+    /// Today's commits on this Mac, for the dot on the profile picture.
+    let localToday = TodayCommitsStore()
+
     /// "Recent activity" under the graph. It loads separately, so the graph never waits for it.
     let activity = RecentActivityStore()
 
@@ -147,6 +150,7 @@ final class ContributionStore {
 
     /// Loads fresh data. Does nothing while another refresh is running, and waits out a rate limit.
     func refresh() {
+        localToday.refresh()
         guard isConnected, !isLoading else { return }
         if let until = blockedUntil, until > Date() {
             refreshError = GitHubError.rateLimited(retryAfter: until).message

@@ -31,7 +31,7 @@ final class ProjectStore {
     @ObservationIgnored private var scanTask: Task<[URL], Never>?
     @ObservationIgnored private var problemTask: Task<Void, Never>?
     private let settings: AppSettings
-    private static let defaultsKey = "projectPaths"
+    static let defaultsKey = "projectPaths"
     private static let addedKey = "projectAddedOrder"
     private static let sortKey = "projectSort"
     private static let relativeFormatter = RelativeDateTimeFormatter()

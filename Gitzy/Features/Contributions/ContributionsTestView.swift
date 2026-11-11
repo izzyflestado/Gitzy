@@ -16,7 +16,7 @@ struct ContributionsTestView: View {
     /// Every press of Refresh adds one full turn, which is what makes the icon spin once.
     @State private var refreshTurns = 0
 
-    private let avatarSize: CGFloat = 50
+    private let avatarSize: CGFloat = 38
 
     var body: some View {
         if store.isConnected {
@@ -47,34 +47,24 @@ struct ContributionsTestView: View {
     // MARK: Profile and refresh
 
     private var profileRow: some View {
-        HStack(spacing: 12) {
-            HStack(spacing: 12) {
-                avatarView
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(primaryName)
-                        .font(.system(size: 17, weight: .semibold))
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    if let secondary = secondaryName {
-                        Text(secondary)
-                            .font(.system(size: 12))
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-                }
-            }
-            .transaction { $0.animation = nil }
+        HStack(spacing: 10) {
+            avatarView
+            Text(usernameText)
+                .font(.system(size: 15, weight: .semibold))
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .transaction { $0.animation = nil }
 
             Spacer(minLength: 8)
 
-            HStack(spacing: 6) {
+            HStack(spacing: 4) {
                 profileButton
                 refreshButton
             }
         }
         .frame(height: avatarSize)
         .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.vertical, 8)
         .background {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(Color.primary.opacity(0.06))
@@ -83,7 +73,9 @@ struct ContributionsTestView: View {
                         .strokeBorder(Color.primary.opacity(0.12), lineWidth: 1)
                 )
         }
-        .padding(.top, 12)
+        .padding(.top, 8)
+        // Above the rows under it, so the card that opens from the dot on the picture is not drawn over by them.
+        .zIndex(1)
     }
 
     private var avatarView: some View {
@@ -103,16 +95,16 @@ struct ContributionsTestView: View {
         .clipShape(Circle())
         .overlay(Circle().strokeBorder(Color.primary.opacity(0.15), lineWidth: 1))
         .accessibilityHidden(true)
+        // Outside the round clip, on the bottom right corner. It also shows today's numbers when the pointer is on it.
+        .overlay(alignment: .bottomTrailing) {
+            TodayStatusDot(store: store)
+                .offset(x: 6, y: 6)
+        }
     }
 
-    /// The display name when there is one, otherwise the user name.
-    private var primaryName: String {
-        store.snapshot?.name ?? "@\(store.login ?? "")"
-    }
-
-    /// The user name under the display name. Not repeated when it is already the main line.
-    private var secondaryName: String? {
-        store.snapshot?.name == nil ? nil : "@\(store.login ?? "")"
+    /// The user name with its @. It is the only name shown, so the row stays short.
+    private var usernameText: String {
+        "@\(store.login ?? "")"
     }
 
     private var refreshButton: some View {
