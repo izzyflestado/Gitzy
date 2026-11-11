@@ -28,6 +28,9 @@ final class ContributionStore {
 
     var isConnected: Bool { login != nil }
 
+    /// "Recent activity" under the graph. It loads separately, so the graph never waits for it.
+    let activity = RecentActivityStore()
+
     private let settings: AppSettings
     private let service = GitHubService()
     @ObservationIgnored private var timer: Timer?
@@ -193,6 +196,7 @@ final class ContributionStore {
             pausedForLowPower = false
             tokenRejected = false
             loadAvatarIfNeeded(for: result)
+            activity.refresh(login: result.login)
         } catch is CancellationError {
             return
         } catch let error as GitHubError {
@@ -238,6 +242,7 @@ final class ContributionStore {
         timer = nil
         isLoading = false
         login = nil
+        activity.reset()
         snapshot = nil
         refreshError = nil
         blockedUntil = nil

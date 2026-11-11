@@ -39,6 +39,8 @@ struct ContributionsTestView: View {
                 .transaction { $0.animation = nil }
             problemLine
                 .transaction { $0.animation = nil }
+            RecentActivityView(activity: store.activity)
+                .padding(.top, 14)
         }
     }
     

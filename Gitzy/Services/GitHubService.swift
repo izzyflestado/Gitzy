@@ -111,6 +111,28 @@ actor GitHubService {
         return data
     }
 
+    /// One load of "Recent activity". It asks about 30 days at a time and steps further back until about ten rows
+    /// are found, at most three requests. `end` is where to start (now, or where the last load stopped) and `limit`
+    /// is the oldest moment it may reach. The reply says where it stopped, so "Load more" can carry on from there.
+    func loadActivity(token: String, endingAt end: Date, notBefore limit: Date) async throws -> ActivityPage {
+        let wanted = 10
+        let maxRequests = 3
+        var items: [ActivityItem] = []
+        var cursor = end
+        var requests = 0
+        while requests < maxRequests, let window = ActivityWindows.window(endingAt: cursor, notBefore: limit) {
+            try Task.checkCancellation()
+            let request = ActivityQuery.make(from: window.from, to: window.to)
+            let reply = try await post(query: request.query, variables: request.variables, token: token)
+            let found = try ActivityParser.parse(reply.data, rateLimitExhausted: reply.rateLimitExhausted, retryAfter: reply.resetDate)
+            items = ActivityMerge.appending(found, to: items)
+            cursor = window.from.addingTimeInterval(-1)
+            requests += 1
+            if items.count >= wanted { break }
+        }
+        return ActivityPage(items: items, nextEnd: cursor)
+    }
+
     // MARK: Private
 
     private func loadYears(_ years: [Int], currentYear: Int, token: String) async throws -> [[ContributionDay]] {
