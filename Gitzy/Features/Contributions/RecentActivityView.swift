@@ -66,27 +66,27 @@ struct RecentActivityView: View {
     }
 
     /// Exactly `visibleRows` rows tall once there are that many, and scrolls from there.
+    /// No box around it. A thin line sits between each row, and none after the last one.
     private var list: some View {
         let rows = min(activity.items.count, Self.visibleRows)
+        let lastID = activity.items.last?.id
         return ScrollView {
             LazyVStack(spacing: 0) {
                 ForEach(activity.items) { item in
                     ActivityRow(item: item)
                         .frame(height: Self.rowHeight)
+                        .overlay(alignment: .bottom) {
+                            if item.id != lastID {
+                                Color.primary.opacity(0.12)
+                                    .frame(height: 1)
+                                    .allowsHitTesting(false)
+                            }
+                        }
                 }
             }
         }
         .scrollBounceBehavior(.basedOnSize)
         .frame(height: CGFloat(rows) * Self.rowHeight)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .background {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.primary.opacity(0.06))
-        }
-        .overlay {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.12), lineWidth: 1)
-        }
     }
 
     private var loadMoreButton: some View {
@@ -159,9 +159,13 @@ private struct ActivityRow: View {
                     .lineLimit(1)
                     .layoutPriority(1)
             }
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 4)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            .background(hovering && item.url != nil ? Color.primary.opacity(0.07) : Color.clear)
+            .background {
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(hovering && item.url != nil ? Color.primary.opacity(0.07) : Color.clear)
+                    .padding(.vertical, 2)
+            }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

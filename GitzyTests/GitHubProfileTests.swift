@@ -8,7 +8,8 @@ nonisolated struct GitHubProfileTests {
 
     private func data(_ json: String) -> Data { Data(json.utf8) }
 
-    private func reply(profile: String) -> String {
+    private 
+func reply(profile: String) -> String {
         """
         {"data":{"viewer":{\(profile),"contributionsCollection":{"contributionCalendar":{
           "totalContributions":3,
