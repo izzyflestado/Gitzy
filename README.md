@@ -14,7 +14,7 @@ Needs macOS 26 or newer. Built with Xcode 27.1.
 ![Gitzy Screenshots1](Media/Preview1.png)
 
 <p align="center">
-  <img src="Media/Preview1.png" alt="Screenshot2">
+  <img src="Media/Preview2.png" alt="Screenshot2">
 </p>
 
 ## What it does
