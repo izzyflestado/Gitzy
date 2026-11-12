@@ -19,3 +19,6 @@ Local.xcconfig
 
 # Release output
 dist/
+
+*.dmg
+dist/
