@@ -6,7 +6,7 @@
 
 <br>
 
-A small macOS menu bar app. Your git projects, your GitHub streak and a branch widget, all in one place.
+A small macOS menu bar app. Your git projects, your GitHub profile and a branch widget, all in one place.
 
 Needs macOS 26 or newer. Built with Xcode 27.1.
 
