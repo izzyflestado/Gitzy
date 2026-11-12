@@ -328,7 +328,7 @@
 		000000000000000111000000 /* Debug configuration for PBXNativeTarget "Gitzy" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = Gitzy;
 				AUTOMATION_APPLE_EVENTS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -382,7 +382,7 @@
 		000000000000000112000000 /* Release configuration for PBXNativeTarget "Gitzy" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = Gitzy;
 				AUTOMATION_APPLE_EVENTS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
