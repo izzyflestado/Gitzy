@@ -10,6 +10,9 @@ A small macOS menu bar app. Your git projects, your GitHub streak and a branch w
 
 Needs macOS 26 or newer. Built with Xcode 27.1.
 
+## Preview
+![Gitzy Screenshots1](Media/Preview1.png)
+![Gitzy Screenshot2](Media/Preview2.png)
 
 ## What it does
 
