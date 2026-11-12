@@ -1,8 +1,15 @@
-# Gitzy
+#<p align="center">
+  <img src="Media/Gitzy_logo.png" alt="Multimail_logo" width="100">
+</p>
+
+<h1 align="center">Gitzy</h1>
+
+<br>
 
 A small macOS menu bar app. Your git projects, your GitHub streak and a branch widget, all in one place.
 
 Needs macOS 26 or newer. Built with Xcode 27.1.
+
 
 ## What it does
 
