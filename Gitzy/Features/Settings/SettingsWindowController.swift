@@ -31,6 +31,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     func show() {
         let window = self.window ?? makeWindow()
         self.window = window
+        NSApp.setActivationPolicy(.regular)   // Dock icon appears while Settings is open
         NSApp.activate()
         window.makeKeyAndOrderFront(nil)
     }
@@ -59,6 +60,8 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         Task { [weak self] in
             guard let self, self.window?.isVisible != true else { return }
             self.window = nil
+            NSApp.setActivationPolicy(.accessory)   // Dock icon goes away again
         }
     }
 }
+
