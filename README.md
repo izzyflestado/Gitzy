@@ -17,8 +17,15 @@ Needs macOS 26 or newer. Built with Xcode 27.1.
   <img src="Media/WidgetPreview.png" alt="Widget Preview">
 </p>
 
-## Downloading and Installing
+## Download
 Grab the latest [Gitzy.dmg](https://github.com/izzyflestado/Gitzy/releases/download/V1.0.0/Gitzy.dmg) from the [Releases page](https://github.com/izzyflestado/Gitzy/releases).
+
+## Setup
+
+1. Open the project in Xcode and run it. No Apple Developer account needed. Want your own signing? See `Local.xcconfig.example`.
+2. Make a classic GitHub token with only `read:user` at github.com/settings/tokens.
+3. Click the Gitzy icon in the menu bar, then press Settings (the gear at the bottom). Under GitHub account, paste your token and press Connect.
+4. macOS will ask to let Gitzy control Xcode, VS Code, Finder and Terminal. Say yes. That's how it knows what's open. You can change it in System Settings, Privacy & Security, Automation.
 
 
 ## Features
@@ -58,13 +65,6 @@ They work in every app. Change them in Settings.
 | ⌥⇧(1-10) | Open the GitHub repo of the corresponding project in your list (follows the sort) |
 
 "Current project" is the repo open in Xcode or VS Code. It has to be saved in Gitzy.
-
-## Setup
-
-1. Open the project in Xcode and run it. No Apple Developer account needed. Want your own signing? See `Local.xcconfig.example`.
-2. Make a classic GitHub token with only `read:user` at github.com/settings/tokens.
-3. Click the Gitzy icon in the menu bar, then press Settings (the gear at the bottom). Under GitHub account, paste your token and press Connect.
-4. macOS will ask to let Gitzy control Xcode, VS Code, Finder and Terminal. Say yes. That's how it knows what's open. You can change it in System Settings, Privacy & Security, Automation.
 
 ## Privacy
 
