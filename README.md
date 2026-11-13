@@ -21,7 +21,7 @@ Needs macOS 26 or newer. Built with Xcode 27.1.
 Grab the latest [Gitzy.dmg](https://github.com/izzyflestado/Gitzy/releases/download/V1.0.0/Gitzy.dmg) from the [Releases page](https://github.com/izzyflestado/Gitzy/releases).
 
 
-## What it does
+## Features
 
 **Projects tab**
 - Add a folder, or scan a folder and it finds every repo inside
@@ -75,12 +75,9 @@ They work in every app. Change them in Settings.
 - App-Based Widget Visibility only looks at which windows are on screen and where. No titles, no contents, no screen recording permission
 - The dot reads this Mac's git logs for today's commits, only in projects that have a GitHub remote
 
-## Heads up
+## Limitations
 
 - **The orange dot can be wrong.** GitHub only counts commits on the default branch (usually `main`) that use an email linked to your GitHub account. A commit on another branch, or with a different email, stays orange even after you push
 - **The dot and the graph aren't live.** They update when you open the Gitzy menu, when you press refresh, and on the timer you pick in Settings (15, 30, 60 min or manual only). So after you push, the dot can stay orange until the next update
 - **Only Xcode and VS Code.** The widget and the "current project" shortcuts can't see other editors
 
-## Tests
-
-Cmd-U in Xcode.
