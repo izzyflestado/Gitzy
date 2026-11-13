@@ -17,6 +17,10 @@ Needs macOS 26 or newer. Built with Xcode 27.1.
   <img src="Media/WidgetPreview.png" alt="Widget Preview">
 </p>
 
+## Downloading and Installing
+Grab the latest [Gitzy.dmg](https://github.com/izzyflestado/Gitzy/releases/download/V1.0.0/Gitzy.dmg) from the [Releases page](https://github.com/izzyflestado/Gitzy/releases).
+
+
 ## What it does
 
 **Projects tab**
