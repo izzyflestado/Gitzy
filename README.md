@@ -1,4 +1,4 @@
-#<p align="center">
+<p align="center">
   <img src="Media/Gitzy_logo.png" alt="Multimail_logo" width="100">
 </p>
 
