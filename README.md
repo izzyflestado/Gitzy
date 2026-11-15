@@ -75,6 +75,9 @@ They work in every app. Change them in Settings.
 - App-Based Widget Visibility only looks at which windows are on screen and where. No titles, no contents, no screen recording permission
 - The dot reads this Mac's git logs for today's commits, only in projects that have a GitHub remote
 
+## Roadmap
+1. [ ] Add notifications
+
 ## Limitations
 
 - **The orange dot can be wrong.** GitHub only counts commits on the default branch (usually `main`) that use an email linked to your GitHub account. A commit on another branch, or with a different email, stays orange even after you push
