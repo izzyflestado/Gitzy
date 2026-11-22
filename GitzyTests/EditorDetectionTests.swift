@@ -46,6 +46,7 @@ nonisolated struct EditorDetectionTests {
     @Test func editorsAreRecognisedByBundleID() {
         #expect(CodeEditor(bundleID: "com.apple.dt.Xcode") == .xcode)
         #expect(CodeEditor(bundleID: "com.microsoft.VSCode") == .vscode)
+        #expect(CodeEditor(bundleID: "dev.kiro.desktop") == .kiro)
         #expect(CodeEditor(bundleID: "com.apple.Terminal") == nil)
         #expect(CodeEditor(bundleID: "") == nil)
     }

@@ -3,7 +3,7 @@ import Observation
 
 /// The global keyboard shortcuts: which keys do what, registering them with the system, and carrying them out.
 ///
-/// Which repository: the same question the branch widget asks. The editor in front (Xcode or VS Code) is asked
+/// Which repository: the same question the branch widget asks. The editor in front (Xcode, VS Code or Kiro) is asked
 /// which project it has open, and the answer is matched against the saved projects. When Gitzy or another app is in
 /// front, the editor that was in front last is asked. If the editor cannot be asked, the last repository found is used.
 /// A project that is not saved in Gitzy is never opened.
@@ -229,6 +229,8 @@ final class ShortcutController {
             detection = XcodeDetector.activeDocument()
         case .vscode:
             detection = await Task.detached { VSCodeDetector.lastActiveFolder() }.value
+        case .kiro:
+            detection = await Task.detached { VSCodeDetector.lastActiveFolder(appSupportFolder: "Kiro", name: "Kiro") }.value
         }
 
         switch detection {

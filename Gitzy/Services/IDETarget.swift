@@ -3,11 +3,12 @@ import Foundation
 /// Decides which code editor to use for a project, and what to hand it.
 ///
 /// With no editor chosen in Settings ("Automatic"), the project decides: an Xcode project or Swift package opens in
-/// Xcode, anything else in VS Code. Xcode also does better with the project file than with the bare folder, so that it
+/// Xcode, anything else in VS Code, or Kiro when VS Code is not installed. Xcode also does better with the project file than with the bare folder, so that it
 /// opens as a real project (with its schemes and targets) rather than as a folder of files.
 nonisolated enum IDETarget {
     static let xcodeBundleID = "com.apple.dt.Xcode"
     static let vscodeBundleID = "com.microsoft.VSCode"
+    static let kiroBundleID = "dev.kiro.desktop"
 
     static func isXcode(appAt app: URL) -> Bool {
         Bundle(url: app)?.bundleIdentifier == xcodeBundleID
@@ -24,7 +25,7 @@ nonisolated enum IDETarget {
 
     /// The editors to try, best first, when none has been chosen: the first one that is installed is used.
     static func automaticOrder(forFolder folder: URL) -> [String] {
-        isXcodeProject(folder) ? [xcodeBundleID, vscodeBundleID] : [vscodeBundleID, xcodeBundleID]
+        isXcodeProject(folder) ? [xcodeBundleID, vscodeBundleID, kiroBundleID] : [vscodeBundleID, kiroBundleID, xcodeBundleID]
     }
 
     // MARK: What to open

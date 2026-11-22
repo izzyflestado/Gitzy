@@ -69,7 +69,7 @@ nonisolated struct IDETargetTests {
         let repo = try temp.folder("repo")
         try temp.folder("repo/App.xcodeproj")
         #expect(IDETarget.isXcodeProject(repo))
-        #expect(IDETarget.automaticOrder(forFolder: repo) == [IDETarget.xcodeBundleID, IDETarget.vscodeBundleID])
+        #expect(IDETarget.automaticOrder(forFolder: repo) == [IDETarget.xcodeBundleID, IDETarget.vscodeBundleID, IDETarget.kiroBundleID])
     }
 
     @Test func aWorkspaceAloneCountsAsAnXcodeProject() throws {
@@ -83,7 +83,7 @@ nonisolated struct IDETargetTests {
         let temp = try TempFolder()
         let repo = try temp.folder("repo")
         try temp.write("// swift-tools-version: 6.0\n", to: "repo/Package.swift")
-        #expect(IDETarget.automaticOrder(forFolder: repo) == [IDETarget.xcodeBundleID, IDETarget.vscodeBundleID])
+        #expect(IDETarget.automaticOrder(forFolder: repo) == [IDETarget.xcodeBundleID, IDETarget.vscodeBundleID, IDETarget.kiroBundleID])
     }
 
     @Test func everythingElseOpensInVSCodeFirst() throws {
@@ -92,7 +92,7 @@ nonisolated struct IDETargetTests {
         try temp.write("{}\n", to: "repo/package.json")
         try temp.write("print('hi')\n", to: "repo/main.py")
         #expect(!IDETarget.isXcodeProject(repo))
-        #expect(IDETarget.automaticOrder(forFolder: repo) == [IDETarget.vscodeBundleID, IDETarget.xcodeBundleID])
+        #expect(IDETarget.automaticOrder(forFolder: repo) == [IDETarget.vscodeBundleID, IDETarget.kiroBundleID, IDETarget.xcodeBundleID])
     }
 
     @Test func anXcodeProjectDeeperDownDoesNotMakeItAnXcodeProject() throws {

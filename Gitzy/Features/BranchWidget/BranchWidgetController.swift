@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Owns the branch widget panel and decides what it shows.
 ///
-/// Which project: when Xcode or VS Code comes to the front, ask it which project is open and match the answer
+/// Which project: when Xcode, VS Code or Kiro comes to the front, ask it which project is open and match the answer
 /// against the saved projects. Only saved projects are ever shown.
 /// Which branch: read from the project's HEAD file, and kept current by watching the Git directory.
 /// Nothing here polls, with one exception: the optional app rules (AppVisibilityMonitor, "Widget by app" in Settings)
@@ -13,7 +13,7 @@ final class BranchWidgetController {
     private(set) var isVisible = false
     private(set) var elevationSummary = "Elevation: not tested yet (show the widget first)"
     /// What the last detection found, for the Widget tab.
-    private(set) var detectionSummary = "Open a saved project in Xcode or VS Code and Gitzy will find it."
+    private(set) var detectionSummary = "Open a saved project in Xcode, VS Code or Kiro and Gitzy will find it."
     /// The branch of the project being shown. Nil until a saved project has been detected.
     private(set) var head: GitHead?
 
@@ -209,13 +209,19 @@ final class BranchWidgetController {
         switch editor {
         case .xcode:
             handle(XcodeDetector.activeDocument(), from: editor)
-        case .vscode:
+        case .vscode, .kiro:
             Task {
-                let result = await Task.detached { VSCodeDetector.lastActiveFolder() }.value
+                let result = await Task.detached { Self.storedFolder(for: editor) }.value
                 guard token == detectionToken else { return }
                 handle(result, from: editor)
             }
         }
+    }
+
+    private nonisolated static func storedFolder(for editor: CodeEditor) -> Detection {
+        editor == .kiro
+            ? VSCodeDetector.lastActiveFolder(appSupportFolder: "Kiro", name: "Kiro")
+            : VSCodeDetector.lastActiveFolder()
     }
 
     private func handle(_ result: Detection, from editor: CodeEditor) {

@@ -4,11 +4,13 @@ import AppKit
 nonisolated enum CodeEditor: Equatable, Sendable {
     case xcode
     case vscode
+    case kiro
 
     init?(bundleID: String) {
         switch bundleID {
         case "com.apple.dt.Xcode": self = .xcode
         case "com.microsoft.VSCode": self = .vscode
+        case "dev.kiro.desktop": self = .kiro
         default: return nil
         }
     }
@@ -17,6 +19,7 @@ nonisolated enum CodeEditor: Equatable, Sendable {
         switch self {
         case .xcode: return "Xcode"
         case .vscode: return "VS Code"
+        case .kiro: return "Kiro"
         }
     }
 }
@@ -79,20 +82,20 @@ enum XcodeDetector {
     }
 }
 
-/// Reads which folder VS Code last had in front from its own storage.json. Read-only.
-/// VS Code decides when it writes that file, so this can lag behind what is on screen.
+/// Reads which folder VS Code (or Kiro, which is built on it and keeps the same file) last had in front from its own
+/// storage.json. Read-only. The editor decides when it writes that file, so this can lag behind what is on screen.
 nonisolated enum VSCodeDetector {
-    static func storageFile() -> URL {
+    static func storageFile(appSupportFolder: String = "Code") -> URL {
         FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/Application Support/Code/User/globalStorage/storage.json")
+            .appendingPathComponent("Library/Application Support/\(appSupportFolder)/User/globalStorage/storage.json")
     }
 
-    static func lastActiveFolder() -> Detection {
-        guard let data = try? Data(contentsOf: storageFile()) else {
-            return .unavailable("Could not read VS Code's storage.json.")
+    static func lastActiveFolder(appSupportFolder: String = "Code", name: String = "VS Code") -> Detection {
+        guard let data = try? Data(contentsOf: storageFile(appSupportFolder: appSupportFolder)) else {
+            return .unavailable("Could not read \(name)'s storage.json.")
         }
         guard let path = lastActivePath(in: data) else {
-            return .unavailable("VS Code's last active window has no local folder open.")
+            return .unavailable("\(name)'s last active window has no local folder open.")
         }
         return .found(GitRepositoryService.resolvedPath(of: URL(fileURLWithPath: path)))
     }

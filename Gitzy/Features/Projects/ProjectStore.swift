@@ -230,7 +230,7 @@ final class ProjectStore {
     func openInIDE(_ project: GitProject) {
         problem = nil
         guard let app = settings.ideAppURL(forProjectAt: project.path) else {
-            show("No code editor found. Install VS Code or Xcode.")
+            show("No code editor found. Install VS Code, Kiro or Xcode.")
             return
         }
         Task {

@@ -37,7 +37,7 @@ Grab the latest [Gitzy.dmg](https://github.com/izzyflestado/Gitzy/releases/downl
 - Each row opens the project in Finder, Terminal, your IDE or its GitHub page
 
 **Widget tab**
-- A small floating widget with the branch of the repo open in Xcode or VS Code
+- A small floating widget with the branch of the repo open in Xcode, VS Code or Kiro
 - Pick where it sits, its colors and its size
 - App-Based Widget Visibility (in Settings): pick apps that show or hide the widget while they're on screen
 
@@ -64,7 +64,7 @@ They work in every app. Change them in Settings.
 | ⌥⇧\` | Open the current project's GitHub repo in the browser |
 | ⌥⇧(1-10) | Open the GitHub repo of the corresponding project in your list (follows the sort) |
 
-"Current project" is the repo open in Xcode or VS Code. It has to be saved in Gitzy.
+"Current project" is the repo open in Xcode, VS Code or Kiro. It has to be saved in Gitzy.
 
 ## Privacy
 
@@ -82,5 +82,5 @@ They work in every app. Change them in Settings.
 
 - **The orange dot can be wrong.** GitHub only counts commits on the default branch (usually `main`) that use an email linked to your GitHub account. A commit on another branch, or with a different email, stays orange even after you push
 - **The dot and the graph aren't live.** They update when you open the Gitzy menu, when you press refresh, and on the timer you pick in Settings (15, 30, 60 min or manual only). So after you push, the dot can stay orange until the next update
-- **Only Xcode and VS Code.** The widget and the "current project" shortcuts can't see other editors
+- **Only Xcode, VS Code and Kiro.** The widget and the "current project" shortcuts can't see other editors
 
