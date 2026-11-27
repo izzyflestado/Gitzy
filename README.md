@@ -76,7 +76,8 @@ They work in every app. Change them in Settings.
 - The dot reads this Mac's git logs for today's commits, only in projects that have a GitHub remote
 
 ## Roadmap
-1. [ ] Add notifications
+1. [x] Add Kiro for detected IDEs
+2. [ ] Add notifications
 
 ## Limitations
 
