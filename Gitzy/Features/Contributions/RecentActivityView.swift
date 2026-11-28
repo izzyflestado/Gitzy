@@ -242,7 +242,7 @@ private struct ActivityRow: View {
     }
 
     private var dateText: String {
-        ActivityDateLabel.text(for: item.date)
+        ActivityDateLabel.text(for: item.date, exactTime: item.hasExactTime)
     }
 
     private var symbol: String {

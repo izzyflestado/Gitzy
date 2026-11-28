@@ -64,7 +64,8 @@ nonisolated enum LocalCommits {
                 detail: nil,
                 date: date,
                 url: nil,
-                commitMessage: title
+                commitMessage: title,
+                hasExactTime: true
             ))
         }
         return items

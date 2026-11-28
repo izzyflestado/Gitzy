@@ -29,6 +29,8 @@ nonisolated struct ActivityItem: Equatable, Identifiable, Sendable {
     var commitMessage: String? = nil
     /// How many commits a "Made N commits" row stands for. Nil on every other kind of row.
     var commitCount: Int? = nil
+    /// True when `date` is the real moment of a commit and not just the start of its day, so it can be shown as a time.
+    var hasExactTime = false
 
     /// The second line: the repository, then the detail when there is one.
     var subtitle: String {
@@ -81,7 +83,11 @@ nonisolated enum ActivityMerge {
 
 /// How a row's date reads: "Today", "Yesterday", "3 days ago", "2 weeks ago", then "Oct 12" (with the year when it is not this one).
 nonisolated enum ActivityDateLabel {
-    static func text(for date: Date, now: Date = Date(), calendar: Calendar = .current, locale: Locale = .current) -> String {
+    /// With `exactTime`, a date that is today reads as a time ("3:42 PM") instead of "Today". Older dates read as before.
+    static func text(for date: Date, exactTime: Bool = false, now: Date = Date(), calendar: Calendar = .current, locale: Locale = .current) -> String {
+        if exactTime, calendar.isDate(date, inSameDayAs: now) {
+            return date.formatted(Date.FormatStyle(locale: locale, calendar: calendar, timeZone: calendar.timeZone).hour().minute())
+        }
         let days = calendar.dateComponents(
             [.day],
             from: calendar.startOfDay(for: date),
