@@ -12,6 +12,9 @@ final class AppSettings {
     private static let builtInTerminalID = "com.apple.Terminal"
     private static let opacityKey = "widgetOpacity"
     private static let ideKey = "ideAppPath"
+    private static let tabKeysKey = "popoverTabKeys"
+    /// The keys that switch the menu's tabs (Projects, Widget, GitHub), as they come out of the box.
+    static let defaultTabKeys = ["l", ";", "'"]
 
     /// Minutes between automatic GitHub refreshes. 0 means manual only.
     static let refreshOptions = [15, 30, 60, 0]
@@ -32,6 +35,8 @@ final class AppSettings {
     private(set) var widgetScale = 1.0
     private(set) var widgetOpacity = 1.0
     private(set) var widgetBackground: RGBAColor?
+    /// One plain key per tab, in the order Projects, Widget, GitHub. No two are the same.
+    private(set) var tabKeys = AppSettings.defaultTabKeys
     /// Colour of the widget's text. Nil means the default (soft white).
     private(set) var widgetTextColor: RGBAColor?
 
@@ -52,10 +57,31 @@ final class AppSettings {
         if let saved = UserDefaults.standard.object(forKey: Self.opacityKey) as? Double {
             widgetOpacity = Self.clampedOpacity(saved)
         }
+        if let saved = UserDefaults.standard.stringArray(forKey: Self.tabKeysKey),
+           saved.count == Self.defaultTabKeys.count,
+           saved.allSatisfy({ $0.count == 1 }),
+           Set(saved).count == saved.count {
+            tabKeys = saved
+        }
         widgetBackground = UserDefaults.standard.string(forKey: Self.backgroundKey).flatMap { RGBAColor(hex: $0) }
         widgetTextColor = UserDefaults.standard.string(forKey: Self.textColorKey).flatMap { RGBAColor(hex: $0) }
     }
 
+    /// Sets the key for one tab (0 Projects, 1 Widget, 2 GitHub). Returns why it was refused, or nil when it was kept.
+    /// A key already used by another tab is refused, so each key always does one thing.
+    func setTabKey(_ key: String, at index: Int) -> String? {
+        guard tabKeys.indices.contains(index), key.count == 1 else { return "Press a single key." }
+        if let other = tabKeys.firstIndex(of: key), other != index {
+            return "\(key.uppercased()) already switches to another tab."
+        }
+        tabKeys[index] = key
+        UserDefaults.standard.set(tabKeys, forKey: Self.tabKeysKey)
+        return nil
+    }
+    func resetTabKeys() {
+        tabKeys = Self.defaultTabKeys
+        UserDefaults.standard.removeObject(forKey: Self.tabKeysKey)
+    }
     func setRefreshInterval(_ minutes: Int) {
         guard Self.refreshOptions.contains(minutes) else { return }
         refreshIntervalMinutes = minutes

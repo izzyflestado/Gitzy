@@ -52,13 +52,14 @@ struct PopoverRootView: View {
         .background(tabKeys)
     }
 
-    /// Press L, ; or ' while the popover is open to jump to the Projects, Widget or GitHub tab.
+    /// Press a tab's key (L, ; and ' unless changed in Settings) while the popover is open to jump to the Projects, Widget or GitHub tab.
     /// The buttons are invisible; they only exist to carry the key equivalents.
     private var tabKeys: some View {
         HStack {
-            Button("") { tab = .projects }.keyboardShortcut("l", modifiers: [])
-            Button("") { tab = .widget }.keyboardShortcut(";", modifiers: [])
-            Button("") { tab = .github }.keyboardShortcut("'", modifiers: [])
+            ForEach(Array(zip(settings.tabKeys, [Tab.projects, .widget, .github])), id: \.1) { key, target in
+                Button("") { tab = target }
+                    .keyboardShortcut(KeyEquivalent(Character(key)), modifiers: [])
+            }
         }
         .opacity(0)
         .allowsHitTesting(false)

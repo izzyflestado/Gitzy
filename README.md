@@ -62,7 +62,7 @@ They work in every app. Change them in Settings.
 | ⌥⇧\ | Open the current project in your IDE |
 | ⌥⇧Return | Open or close the Gitzy menu |
 | ⌥⇧\` | Open the current project's GitHub repo in the browser |
-| L, ;, ' | With the Gitzy menu open, switch to the Projects, Widget or GitHub tab |
+| L, ;, ' | With the Gitzy menu open, switch to the Projects, Widget or GitHub tab. Change them in Settings, under Menu tab keys |
 | ⌥⇧(1-10) | Open the GitHub repo of the corresponding project in your list (follows the sort) |
 
 "Current project" is the repo open in Xcode, VS Code or Kiro. It has to be saved in Gitzy.
