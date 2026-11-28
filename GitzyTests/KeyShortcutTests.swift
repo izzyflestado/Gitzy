@@ -44,7 +44,6 @@ nonisolated struct KeyShortcutTests {
         #expect(KeyShortcut(keyCode: 0x7E, modifiers: option).display == "⌥↑")
         #expect(KeyShortcut(keyCode: 0x7A, modifiers: option).display == "⌥F1")
     }
-    }
 
     // MARK: What is allowed
 
