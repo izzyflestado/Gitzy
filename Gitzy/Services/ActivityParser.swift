@@ -3,7 +3,7 @@ import Foundation
 /// The one extra request behind "Recent activity". It goes to the same address as everything else
 /// (https://api.github.com/graphql, with the token) and asks for the same kind of public information as the
 /// contribution summary on a GitHub profile: which repositories got commits on which days, and which pull requests,
-/// issues, reviews and repositories were opened. It never asks for commit messages, file names or code.
+/// issues, reviews and repositories were opened. It asks for no file names or code. Commit messages are asked for separately, only for a day with a single commit (see CommitMessages).
 ///
 /// Every list is capped. Commits come grouped by repository and day, so a 30-day window needs at most 31 days each.
 /// The other lists come newest first (that is GitHub's default order) and are capped at 50 a window.
@@ -133,7 +133,8 @@ nonisolated enum ActivityParser {
                     repo: repo,
                     detail: nil,
                     date: date,
-                    url: url
+                    url: url,
+                    commitCount: count
                 ))
             }
         }

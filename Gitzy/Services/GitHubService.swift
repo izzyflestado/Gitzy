@@ -22,6 +22,7 @@ actor GitHubService {
     /// Kept in memory only, and dropped when the account changes.
     private var closedYears: [Int: [ContributionDay]] = [:]
     private var cachedLogin: String?
+    private var cachedViewerID: String?
 
     init() {
         let configuration = URLSessionConfiguration.ephemeral   // no cookies, no disk cache
@@ -36,6 +37,7 @@ actor GitHubService {
     func clearCache() {
         closedYears = [:]
         cachedLogin = nil
+        cachedViewerID = nil
     }
 
     /// Checks a token with the smallest possible request.
@@ -130,7 +132,36 @@ actor GitHubService {
             requests += 1
             if items.count >= wanted { break }
         }
+        items = await withCommitMessages(items, token: token, from: cursor, to: end)
         return ActivityPage(items: items, nextEnd: cursor)
+    }
+
+    /// Gives "Made 1 commit" rows their message (see CommitMessages). It is a bonus: if anything goes wrong, the rows
+    /// are returned as they were, so the list never fails because of it.
+    private func withCommitMessages(_ items: [ActivityItem], token: String, from: Date, to: Date) async -> [ActivityItem] {
+        let repositories = CommitMessages.repositories(in: items)
+        guard !repositories.isEmpty else { return items }
+        do {
+            let id = try await viewerID(token: token)
+            guard let query = CommitMessages.query(viewerID: id, repositories: repositories, from: from, to: to) else { return items }
+            let reply = try await post(query: query, variables: [:], token: token)
+            let found = CommitMessages.parse(reply.data, repositories: repositories)
+            return CommitMessages.attach(to: items, found: found)
+        } catch {
+            return items
+        }
+    }
+
+    private func viewerID(token: String) async throws -> String {
+        if let cachedViewerID { return cachedViewerID }
+        let reply = try await post(query: "query { viewer { id } }", variables: [:], token: token)
+        guard let root = (try? JSONSerialization.jsonObject(with: reply.data)) as? [String: Any],
+              let data = root["data"] as? [String: Any],
+              let viewer = data["viewer"] as? [String: Any],
+              let id = viewer["id"] as? String
+        else { throw GitHubError.unexpectedResponse }
+        cachedViewerID = id
+        return id
     }
 
     // MARK: Private

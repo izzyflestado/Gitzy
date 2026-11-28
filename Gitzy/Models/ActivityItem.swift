@@ -16,7 +16,7 @@ nonisolated struct ActivityItem: Equatable, Identifiable, Sendable {
     let id: String
     let kind: ActivityKind
     /// The first line, for example "Made 3 commits".
-    let action: String
+    var action: String
     /// "owner/name" of the repository. Already checked by ActivityParser.
     let repo: String
     /// "#12 Fix the crash" for a pull request or an issue. Nil for commits and new repositories.
@@ -27,6 +27,8 @@ nonisolated struct ActivityItem: Equatable, Identifiable, Sendable {
     /// The message of a single commit. Set only on a row for exactly one commit, which then shows the message as its
     /// first line and "commit" as its second, with the repository on the right.
     var commitMessage: String? = nil
+    /// How many commits a "Made N commits" row stands for. Nil on every other kind of row.
+    var commitCount: Int? = nil
 
     /// The second line: the repository, then the detail when there is one.
     var subtitle: String {
