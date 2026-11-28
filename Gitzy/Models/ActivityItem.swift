@@ -11,7 +11,7 @@ nonisolated enum ActivityKind: Sendable {
 
 /// One row of "Recent activity", in the style of GitHub's own contribution summary:
 /// "Made 3 commits", "Opened pull request", "Reviewed pull request", "Opened issue", "Created repository".
-/// It holds no commit messages and no code, only the kind of thing, where it happened, and when.
+/// It holds no code. It holds a commit message only for a row that stands for exactly one commit.
 nonisolated struct ActivityItem: Equatable, Identifiable, Sendable {
     let id: String
     let kind: ActivityKind
@@ -24,6 +24,9 @@ nonisolated struct ActivityItem: Equatable, Identifiable, Sendable {
     let date: Date
     /// Where a click goes. Already checked by GitHubLink, so it is always an https address on github.com.
     let url: URL?
+    /// The message of a single commit. Set only on a row for exactly one commit, which then shows the message as its
+    /// first line and "commit" as its second, with the repository on the right.
+    var commitMessage: String? = nil
 
     /// The second line: the repository, then the detail when there is one.
     var subtitle: String {

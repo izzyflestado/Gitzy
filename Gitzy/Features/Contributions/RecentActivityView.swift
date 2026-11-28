@@ -144,7 +144,8 @@ private struct ActivityRow: View {
                     Text(item.action)
                         .font(.system(size: 12, weight: .medium))
                         .lineLimit(1)
-                    Text(item.subtitle)
+                        .truncationMode(.tail)
+                    Text(item.commitMessage == nil ? item.subtitle : "commit")
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
@@ -153,11 +154,28 @@ private struct ActivityRow: View {
 
                 Spacer(minLength: 6)
 
-                Text(dateText)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                if item.commitMessage == nil {
+                    Text(dateText)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .layoutPriority(1)
+                } else {
+                    // A single commit: the repository moves to the right, above the date.
+                    VStack(alignment: .trailing, spacing: 1) {
+                        Text(item.repo)
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                        Text(dateText)
+                            .font(.system(size: 11))
+                            .foregroundStyle(.tertiary)
+                            .lineLimit(1)
+                    }
+                    .frame(maxWidth: 130, alignment: .trailing)
                     .layoutPriority(1)
+                }
             }
             .padding(.horizontal, 4)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -172,7 +190,9 @@ private struct ActivityRow: View {
         .disabled(item.url == nil)
         .onHover { hovering = $0 }
         .help("Open on GitHub")
-        .accessibilityLabel("\(item.action), \(item.subtitle), \(dateText)")
+        .accessibilityLabel(item.commitMessage == nil
+                ? "\(item.action), \(item.subtitle), \(dateText)"
+                : "Commit: \(item.action), \(item.repo), \(dateText)")
     }
 
     private var dateText: String {
