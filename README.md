@@ -62,6 +62,7 @@ They work in every app. Change them in Settings.
 | ⌥⇧\ | Open the current project in your IDE |
 | ⌥⇧Return | Open or close the Gitzy menu |
 | ⌥⇧\` | Open the current project's GitHub repo in the browser |
+| 1, 2, 3 | With the Gitzy menu open, switch to the Projects, Widget or GitHub tab |
 | ⌥⇧(1-10) | Open the GitHub repo of the corresponding project in your list (follows the sort) |
 
 "Current project" is the repo open in Xcode, VS Code or Kiro. It has to be saved in Gitzy.
@@ -78,7 +79,7 @@ They work in every app. Change them in Settings.
 ## Roadmap
 1. [x] Add Kiro for detected IDEs
 2. [ ] Add notifications
-3. [ ] Add tab keybinds: after ⌥⇧Return opens the menu, press 1, 2 or 3 to switch tabs
+3. [x] Add tab keybinds: after ⌥⇧Return opens the menu, press 1, 2 or 3 to switch tabs
 
 ## Limitations
 
