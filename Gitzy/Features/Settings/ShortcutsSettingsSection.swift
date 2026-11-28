@@ -8,6 +8,7 @@ import SwiftUI
 /// existing shortcut does not trigger it.
 struct ShortcutsSettingsSection: View {
     let controller: ShortcutController
+    let settings: AppSettings
 
     /// The action being recorded, if any.
     @State private var recording: ShortcutAction?
@@ -30,37 +31,49 @@ struct ShortcutsSettingsSection: View {
                 }
                 .onDisappear { stopRecording() }
 
+        ForEach(Self.groups, id: \.title) { group in
+            subheading(group.title)
+            ForEach(group.actions) { action in
+                LabeledContent(action.title) {
+                    keyCap(for: action)
+                }
+                if recording == action {
+                    note(recordingHint, isProblem: message != nil)
+                } else if let problem = controller.problems[action] {
+                    note(problem, isProblem: true)
+                }
+            }
+            if group.title == Self.menuGroup {
+                TabKeysRows(settings: settings)
+            }
+        }
         } header: {
             HStack {
                 Text("Keyboard shortcuts")
                 Spacer()
                 Button("Restore Defaults", action: restoreDefaults)
                     .controlSize(.small)
-                    .disabled(controller.shortcuts == ShortcutBindings.defaults)
-            }
-        }
-        ForEach(Self.groups, id: \.title) { group in
-            Section(group.title) {
-                ForEach(group.actions) { action in
-                    LabeledContent(action.title) {
-                        keyCap(for: action)
-                    }
-                    if recording == action {
-                        note(recordingHint, isProblem: message != nil)
-                    } else if let problem = controller.problems[action] {
-                        note(problem, isProblem: true)
-                    }
-                }
+                    .disabled(controller.shortcuts == ShortcutBindings.defaults
+                              && settings.tabKeys == AppSettings.defaultTabKeys)
             }
         }
     }
 
-    /// The shortcuts as they are grouped in Settings.
+    private static let menuGroup = "Gitzy menu"
+
+    /// The shortcuts as they are grouped inside this section.
     private static let groups: [(title: String, actions: [ShortcutAction])] = [
         ("Current project", [.openInFinder, .openInTerminal, .openInIDE, .openOnGitHub]),
         ("Projects list", [.openProjectByNumber]),
-        ("Gitzy menu", [.openMenu]),
+        (menuGroup, [.openMenu]),
     ]
+
+    private func subheading(_ title: String) -> some View {
+        Text(title)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .padding(.top, 6)
+    }
 
     // MARK: Pieces
 
@@ -133,6 +146,7 @@ struct ShortcutsSettingsSection: View {
     private func restoreDefaults() {
         stopRecording()
         controller.resetShortcuts()
+        settings.resetTabKeys()
     }
 
     // MARK: Recording

@@ -1,39 +1,27 @@
 import AppKit
 import SwiftUI
 
-/// The keys that switch tabs while the Gitzy menu is open. They are plain keys, used only inside the menu.
+/// The rows for the keys that switch tabs while the Gitzy menu is open. They are plain keys, used only inside the menu.
+/// These rows sit inside the Keyboard shortcuts section, under "Gitzy menu".
 ///
 /// To change one: click its key, then press the new key. Esc cancels. A key another tab already uses is refused.
-struct TabKeysSettingsSection: View {
+struct TabKeysRows: View {
     let settings: AppSettings
-    private let tabNames = ["Projects tab", "Widget tab", "GitHub tab"]
+    private let tabNames = ["Switch to Projects tab", "Switch to Widget tab", "Switch to GitHub tab"]
     /// Index of the tab being recorded, if any.
     @State private var recording: Int?
     @State private var message: String?
     @State private var monitor: Any?
 
     var body: some View {
-        Section {
-            ForEach(tabNames.indices, id: \.self) { index in
-                LabeledContent(tabNames[index]) {
-                    keyCap(index)
-                }
-                if recording == index {
-                    Text(message ?? "Press the new key. Esc cancels.")
-                        .font(.system(size: 11))
-                        .foregroundStyle(message == nil ? Color.secondary : Color.orange)
-                }
+        ForEach(tabNames.indices, id: \.self) { index in
+            LabeledContent(tabNames[index]) {
+                keyCap(index)
             }
-        } header: {
-            HStack {
-                Text("Menu tab keys")
-                Spacer()
-                Button("Restore Defaults") {
-                    stopRecording()
-                    settings.resetTabKeys()
-                }
-                .controlSize(.small)
-                .disabled(settings.tabKeys == AppSettings.defaultTabKeys)
+            if recording == index {
+                Text(message ?? "Press the new key. Esc cancels.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(message == nil ? Color.secondary : Color.orange)
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification)) { _ in stopRecording() }

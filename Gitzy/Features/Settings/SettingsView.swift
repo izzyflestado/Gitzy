@@ -28,8 +28,7 @@ struct SettingsView: View {
                 Form {
                     WidgetAppRulesSection(monitor: widget.appVisibility)
                     WindowsSettingsSection(settings: settings)
-                    ShortcutsSettingsSection(controller: shortcuts)
-                    TabKeysSettingsSection(settings: settings)
+                    ShortcutsSettingsSection(controller: shortcuts, settings: settings)
                     // Coming next: Projects (terminal app, code editor, default sort, forget all), General, Widget, About.
                 }
                 .settingsFormLook()
