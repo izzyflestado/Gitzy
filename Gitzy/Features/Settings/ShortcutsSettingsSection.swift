@@ -78,7 +78,6 @@ struct ShortcutsSettingsSection: View {
     /// The shortcuts as they are grouped inside this section.
     private static let groups: [(title: String, actions: [ShortcutAction])] = [
         ("Current project", [.openInFinder, .openInTerminal, .openInIDE, .openOnGitHub]),
-        ("Projects list", [.openProjectByNumber]),
         (menuGroup, [.openMenu]),
     ]
 
