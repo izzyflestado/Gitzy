@@ -235,7 +235,7 @@ private struct ActivityRow: View {
         }
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
-        .overlay(TooltipOverlay(text: helpText))
+        .help(helpText)
         .accessibilityLabel(item.commitMessage == nil
                 ? "\(item.action), \(item.subtitle), \(dateText)"
                 : "Commit: \(item.action), \(item.repo), \(dateText)")
@@ -260,23 +260,5 @@ private struct ActivityRow: View {
         case .review: return "text.bubble"
         case .repository: return "book.closed"
         }
-    }
-}
-
-/// A tooltip that comes from AppKit itself. SwiftUI's `.help` did not show inside the menu bar popover for these rows.
-/// The view lets every click and hover through to the row underneath, and only supplies the tooltip.
-private struct TooltipOverlay: NSViewRepresentable {
-    let text: String
-
-    func makeNSView(context: Context) -> TooltipView {
-        TooltipView()
-    }
-
-    func updateNSView(_ view: TooltipView, context: Context) {
-        view.toolTip = text.isEmpty ? nil : text
-    }
-
-    final class TooltipView: NSView {
-        override func hitTest(_ point: NSPoint) -> NSView? { nil }
     }
 }
