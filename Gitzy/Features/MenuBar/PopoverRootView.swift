@@ -49,6 +49,20 @@ struct PopoverRootView: View {
         }
         .padding(16)
         .frame(width: 360, height: 440, alignment: .top)
+        .background(tabKeys)
+    }
+
+    /// Press 1, 2 or 3 while the popover is open to jump to the Projects, Widget or GitHub tab.
+    /// The buttons are invisible; they only exist to carry the key equivalents.
+    private var tabKeys: some View {
+        HStack {
+            Button("") { tab = .projects }.keyboardShortcut("1", modifiers: [])
+            Button("") { tab = .widget }.keyboardShortcut("2", modifiers: [])
+            Button("") { tab = .github }.keyboardShortcut("3", modifiers: [])
+        }
+        .opacity(0)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 
     // MARK: Footer
