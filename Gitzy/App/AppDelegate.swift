@@ -27,6 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menuBar = MenuBarController(widget: widget, projects: projects, contributions: contributions, settings: settings, settingsWindow: settingsWindow)
         // The "Open Gitzy menu" shortcut opens the same window as clicking the menu bar icon.
         self.shortcuts?.openMenu = { [weak self] in self?.menuBar?.togglePopover() }
+        self.shortcuts?.githubLogin = { [weak self] in self?.contributions?.login }
     }
 
     /// Closing the Settings window must never quit the app. Gitzy lives in the menu bar.

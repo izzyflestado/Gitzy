@@ -31,6 +31,8 @@ final class ShortcutController {
     @ObservationIgnored private var observer: NSObjectProtocol?
     /// Opens (or closes) Gitzy's own menu bar window. The app sets it once that window exists.
     @ObservationIgnored var openMenu: (() -> Void)?
+    /// The GitHub username Gitzy is connected as, or nil when no account is connected. The app sets it at launch.
+    @ObservationIgnored var githubLogin: (() -> String?)?
 
     private static let enabledKey = "shortcutsEnabled"
     private static let bindingsKey = "shortcutBindings"
@@ -159,6 +161,11 @@ final class ShortcutController {
             openMenu?()
             return
         }
+        // Opening the profile needs no repository either, only the connected GitHub account.
+        if action == .openGitHubProfile {
+            openGitHubProfile()
+            return
+        }
         // The numbered action opens the project at a place in the list, so no editor is asked either.
         if action == .openProjectByNumber {
             openProject(atPosition: number)
@@ -176,11 +183,19 @@ final class ShortcutController {
             case .openInTerminal: projects.openInTerminal(project)
             case .openInIDE: projects.openInIDE(project)
             case .openOnGitHub: openOnGitHub(path: path)
-            case .openMenu, .openProjectByNumber: break   // handled above
+            case .openMenu, .openProjectByNumber, .openGitHubProfile: break   // handled above
             }
         }
     }
 
+    /// Opens the connected account's profile page in the browser. Beeps when no account is connected.
+    private func openGitHubProfile() {
+        guard let login = githubLogin?(), let url = URL(string: "https://github.com/\(login)") else {
+            NSSound.beep()
+            return
+        }
+        NSWorkspace.shared.open(url)
+    }
     /// Opens the project the editor has open on GitHub. Beeps when it has no GitHub address.
     private func openOnGitHub(path: String) {
         guard let row = projects.rows.first(where: { $0.project.path == path }), row.status.githubURL != nil else {

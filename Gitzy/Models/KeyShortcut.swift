@@ -68,6 +68,7 @@ nonisolated enum ShortcutAction: String, CaseIterable, Codable, Identifiable, Se
     case openOnGitHub
     case openProjectByNumber
     case openMenu
+    case openGitHubProfile
 
     var id: String { rawValue }
 
@@ -79,6 +80,7 @@ nonisolated enum ShortcutAction: String, CaseIterable, Codable, Identifiable, Se
         case .openOnGitHub: return "Open project on GitHub"
         case .openProjectByNumber: return "Open project 1 to 10 on GitHub"
         case .openMenu: return "Open Gitzy menu"
+        case .openGitHubProfile: return "Open my GitHub profile"
         }
     }
 
@@ -92,6 +94,7 @@ nonisolated enum ShortcutAction: String, CaseIterable, Codable, Identifiable, Se
         case .openOnGitHub: return KeyShortcut(keyCode: 0x32, modifiers: modifiers)          // `
         case .openProjectByNumber: return KeyShortcut(keyCode: 0x12, modifiers: modifiers)   // 1 (2 to 9 and 0 follow)
         case .openMenu: return KeyShortcut(keyCode: 0x24, modifiers: modifiers)   // Return
+        case .openGitHubProfile: return KeyShortcut(keyCode: 0x30, modifiers: modifiers)   // Tab
         }
     }
 }
