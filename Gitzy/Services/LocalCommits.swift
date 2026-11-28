@@ -54,7 +54,7 @@ nonisolated enum LocalCommits {
             guard words.count >= 4, let seconds = TimeInterval(words[words.count - 2]), seconds >= earliest else { continue }
             guard let colon = parts[1].firstIndex(of: ":") else { continue }
             let message = String(parts[1][parts[1].index(after: colon)...])
-            guard let title = ActivityText.title(message) else { continue }
+            guard let title = ActivityText.title(message, limit: ActivityText.maxCommitLength) else { continue }
             let date = Date(timeIntervalSince1970: seconds)
             items.append(ActivityItem(
                 id: "local|\(projectPath)|\(words[1])|\(Int(seconds))",

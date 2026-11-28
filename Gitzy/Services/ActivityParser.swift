@@ -55,6 +55,8 @@ nonisolated enum GitHubLink {
 /// Cleans text that came from other people (repository names, pull request titles) before it is shown.
 nonisolated enum ActivityText {
     private static let maxTitleLength = 120
+    /// A commit message line is shown whole in the hover text, so it is allowed to be longer than a title.
+    static let maxCommitLength = 500
     private static let maxRepoLength = 140
 
     /// "owner/name", made only of the characters GitHub allows there. Anything else is not shown at all.
@@ -68,7 +70,7 @@ nonisolated enum ActivityText {
 
     /// A one-line title: line breaks and tabs become spaces, repeated spaces collapse, and the characters that
     /// flip the direction of text (which could make one title look like another) are dropped. Long titles are cut.
-    static func title(_ raw: String?) -> String? {
+    static func title(_ raw: String?, limit: Int = maxTitleLength) -> String? {
         guard let raw else { return nil }
         var cleaned = String.UnicodeScalarView()
         for scalar in raw.unicodeScalars {
@@ -84,8 +86,8 @@ nonisolated enum ActivityText {
             .split(separator: " ", omittingEmptySubsequences: true)
             .joined(separator: " ")
         guard !text.isEmpty else { return nil }
-        guard text.count > maxTitleLength else { return text }
-        return String(text.prefix(maxTitleLength - 1)) + "…"
+        guard text.count > limit else { return text }
+        return String(text.prefix(limit - 1)) + "…"
     }
 
     private static func isDirectionControl(_ scalar: Unicode.Scalar) -> Bool {
