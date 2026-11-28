@@ -31,22 +31,35 @@ struct ShortcutsSettingsSection: View {
                 }
                 .onDisappear { stopRecording() }
 
-        ForEach(Self.groups, id: \.title) { group in
-            subheading(group.title)
-            ForEach(group.actions) { action in
-                LabeledContent(action.title) {
-                    keyCap(for: action)
+            ForEach(Self.groups, id: \.title) { group in
+                // One box per group, inside the section's box.
+                VStack(alignment: .leading, spacing: 8) {
+                    subheading(group.title)
+                    ForEach(group.actions) { action in
+                        LabeledContent(action.title) {
+                            keyCap(for: action)
+                        }
+                        if recording == action {
+                            note(recordingHint, isProblem: message != nil)
+                        } else if let problem = controller.problems[action] {
+                            note(problem, isProblem: true)
+                        }
+                    }
+                    if group.title == Self.menuGroup {
+                        TabKeysRows(settings: settings)
+                    }
                 }
-                if recording == action {
-                    note(recordingHint, isProblem: message != nil)
-                } else if let problem = controller.problems[action] {
-                    note(problem, isProblem: true)
-                }
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(Color.primary.opacity(0.04))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .strokeBorder(Color.primary.opacity(0.12), lineWidth: 1)
+                )
             }
-            if group.title == Self.menuGroup {
-                TabKeysRows(settings: settings)
-            }
-        }
         } header: {
             HStack {
                 Text("Keyboard shortcuts")
@@ -58,6 +71,7 @@ struct ShortcutsSettingsSection: View {
             }
         }
     }
+
 
     private static let menuGroup = "Gitzy menu"
 
@@ -72,7 +86,6 @@ struct ShortcutsSettingsSection: View {
         Text(title)
             .font(.subheadline.weight(.semibold))
             .foregroundStyle(.secondary)
-            .padding(.top, 6)
     }
 
     // MARK: Pieces
