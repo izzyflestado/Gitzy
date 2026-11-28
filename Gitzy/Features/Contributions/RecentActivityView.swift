@@ -235,17 +235,10 @@ private struct ActivityRow: View {
         }
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
-        .help(helpText)
+        .help(item.url == nil ? "" : "Open on GitHub")
         .accessibilityLabel(item.commitMessage == nil
                 ? "\(item.action), \(item.subtitle), \(dateText)"
                 : "Commit: \(item.action), \(item.repo), \(dateText)")
-    }
-
-    /// The tooltip. A commit row shows its whole message, with the date and time when they are exact.
-    private var helpText: String {
-        guard let message = item.commitMessage else { return item.url == nil ? "" : "Open on GitHub" }
-        guard item.hasExactTime else { return message }
-        return message + "\n" + item.date.formatted(date: .abbreviated, time: .shortened)
     }
 
     private var dateText: String {

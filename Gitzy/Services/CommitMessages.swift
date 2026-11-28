@@ -69,7 +69,7 @@ nonisolated enum CommitMessages {
             else { continue }
             result[repo] = nodes.compactMap { node in
                 guard let text = node["committedDate"] as? String, let date = plain.date(from: text),
-                      let headline = ActivityText.title(node["messageHeadline"] as? String, limit: ActivityText.maxCommitLength)
+                      let headline = ActivityText.title(node["messageHeadline"] as? String)
                 else { return nil }
                 return Found(date: date, headline: headline)
             }
