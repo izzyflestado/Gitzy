@@ -78,6 +78,7 @@ They work in every app. Change them in Settings.
 ## Roadmap
 1. [x] Add Kiro for detected IDEs
 2. [ ] Add notifications
+3. [ ] Add tab keybinds: after ⌥⇧Return opens the menu, press 1, 2 or 3 to switch tabs
 
 ## Limitations
 
