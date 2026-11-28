@@ -30,16 +30,6 @@ struct ShortcutsSettingsSection: View {
                 }
                 .onDisappear { stopRecording() }
 
-            ForEach(ShortcutAction.allCases) { action in
-                LabeledContent(action.title) {
-                    keyCap(for: action)
-                }
-                if recording == action {
-                    note(recordingHint, isProblem: message != nil)
-                } else if let problem = controller.problems[action] {
-                    note(problem, isProblem: true)
-                }
-            }
         } header: {
             HStack {
                 Text("Keyboard shortcuts")
@@ -49,7 +39,28 @@ struct ShortcutsSettingsSection: View {
                     .disabled(controller.shortcuts == ShortcutBindings.defaults)
             }
         }
+        ForEach(Self.groups, id: \.title) { group in
+            Section(group.title) {
+                ForEach(group.actions) { action in
+                    LabeledContent(action.title) {
+                        keyCap(for: action)
+                    }
+                    if recording == action {
+                        note(recordingHint, isProblem: message != nil)
+                    } else if let problem = controller.problems[action] {
+                        note(problem, isProblem: true)
+                    }
+                }
+            }
+        }
     }
+
+    /// The shortcuts as they are grouped in Settings.
+    private static let groups: [(title: String, actions: [ShortcutAction])] = [
+        ("Current project", [.openInFinder, .openInTerminal, .openInIDE, .openOnGitHub]),
+        ("Projects list", [.openProjectByNumber]),
+        ("Gitzy menu", [.openMenu]),
+    ]
 
     // MARK: Pieces
 
